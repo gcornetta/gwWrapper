@@ -1,0 +1,29 @@
+{
+  "name": "wrapper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.6.0",
+    "body-parser": "^1.18.2",
+    "colors": "^1.1.2",
+    "express": "^4.16.1",
+    "nschedule": "^0.4.0",
+    "randomstring": "^1.1.5",
+    "redis": "^2.8.0",
+    "siren-client": "^1.4.0",
+    "strftime": "^0.10.0",
+    "super-siren": "^2.0.2",
+    "swagger-tools": "^0.10.3",
+    "swagger-ui": "^3.4.4",
+    "url": "^0.11.0",
+    "winston": "^2.4.0",
+    "yamljs": "^0.3.0",
+    "zetta": "^1.5.0"
+  }
+}

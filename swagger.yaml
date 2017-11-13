@@ -1,0 +1,515 @@
+# Fablab API Specification
+swagger: '2.0'
+info:
+  title: Fab Lab Gateway API
+  description: Gateway Communication API
+  version: "1.0.0"
+# the domain of the service
+host: pigateway.local:3000
+# array of all schemes that your API supports
+schemes:
+  - http
+# will be prefixed to all paths
+basePath: /fablab
+produces:
+  - application/json
+paths:
+  /:
+    get:
+      summary: Fab lab information.
+      description: | 
+        The root endpoint */* returns information about the fablab
+        structure and general information, as well as a snapshot of 
+        the active jobs, machine status and fablab load.
+      tags:
+        - fablab
+      responses:
+        200:
+          description: A JSON object with the fablab description.
+          schema:
+            $ref: '#/definitions/fablab'
+        default:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/error'
+  /quota:
+    get:
+      summary: Get the Fab lab API call quota
+      description: | 
+        The */quota* endpoint returns the information about the API call
+        quota available for the fablab.
+      tags:
+        - fablab
+      responses:
+        200: 
+          description: A JSON object with the fablab quota.
+          schema:
+            $ref: '#/definitions/quota'
+        default:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/error'
+  /jobs:
+    post:
+      summary: Submit a job for fabrications.
+      consumes:
+         - multipart/form-data
+      description: |
+        The */jobs* endpoint accepts the machine type, the fabrication process
+        and the material in the query string, and the file with the design in
+        the request body.
+      tags:
+        - jobs
+      parameters:
+        - name: machine
+          in: query
+          required: true
+          type: string
+          enum:
+            - vinyl cutter
+            - laser cutter
+            - 3D printer
+            - milling machine
+          description: Machine type.
+        - name: process
+          in: query
+          type: string
+          enum:
+            - cut
+            - halftone
+          description: Fabrication process (does not apply to 3D printer).
+        - name: material
+          in: query
+          type: string
+          enum:
+            - vinyl
+            - wood
+            - mylar
+            - copper
+            - cardboard
+          description: Fabrication material (does not apply to 3D printer).
+        - in: formData
+          name: design
+          required: true 
+          type: file
+          description: The file with the design submitted for fabrication.
+      responses:
+        200:
+          description: Request OK.
+          schema:
+            $ref: '#/definitions/accepted'
+        400:
+          description: Bad request.
+          schema:
+            $ref: '#/definitions/error'
+  /jobs/status/{id}:
+    get:
+      summary: Get the status of a given job
+      description: Returns a single person for its username
+      tags: 
+        - jobs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The job unique identifier
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: The job status
+          schema:
+            $ref: '#/definitions/status'
+        400:
+          description: Bad request.
+          schema:
+            $ref: '#/definitions/error'
+  /jobs/{id}:
+    delete:
+      summary: Deletes a given job.
+      description: Deletes a job based on its uuid. Running jobs cannot be deleted.
+      tags: 
+        - jobs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The job unique identifier
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: Delete success
+          schema:
+            $ref: '#/definitions/deleted'
+        400:
+          description: Bad request.
+          schema:
+            $ref: '#/definitions/error'      
+definitions:
+  fablab:
+    title: Fablab description object
+    type: object
+    properties:
+      fablab:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+            description: Unique fablab identifier assigned by Cloudhub.
+          name:
+            type: string
+            description: Fablab name
+          web:
+            type: string
+            description: URL of the fablab web page.
+          capacity:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 100
+            description: Fablab load indicator. Integer from 0 to 100.
+          address:
+            $ref: '#/definitions/address'
+          coordinates:
+            $ref: '#/definitions/coordinates'
+          openingDays:
+            type: array
+            description: Fab lab opening days.
+            items:
+              $ref: '#/definitions/openingDays'
+          contact:
+            $ref: '#/definitions/contact'
+          equipment:
+            type: array
+            description: Fab lab available equipment.
+            items:
+              $ref: '#/definitions/equipment'
+          materials:
+            type: array
+            description: Fab lab available materials.
+            items:
+              $ref: '#/definitions/materials'
+      jobs:
+        type: object
+        properties:
+          running:
+            type: integer
+            format: int32
+            description: Total number of running jobs.
+          queued:
+            type: integer
+            format: int32
+            description: Total number of queued jobs.
+          details:
+            type: array
+            description: Running job details.
+            items:
+              $ref: '#/definitions/details'
+  address:
+    type: object
+    description: Fab lab postal address.
+    properties:
+      display:
+        type: string
+        description: The address that is displayed.
+      number:
+        type: integer
+        format: int32
+        description: Street number.
+      street:
+        type: string
+        description: Street name.
+      postcode:
+        type: integer
+        format: int32
+        description: The postal code.
+      state: 
+        type: string
+        description: State or province.
+      country:
+        type: string
+        description: The country.
+      code:
+        type: string
+        maxLength: 2
+        description: Country code (two characters).
+  coordinates:
+    type: object
+    description: Fab lab geographic coordinates (latitude and longitude).
+    properties:
+      latitude:
+        type: number
+        format: double
+        minimum: -90
+        maximum: +90
+        description: The latitude.
+      longitude:
+        type: number
+        format: double
+        minimum: -180
+        maximum: +180
+        description: The longitude.
+  openingDays:
+    type: object
+    description: Opening day details.
+    properties:
+      day: 
+        type: string
+        enum:
+          - sunday
+          - monday
+          - tuesday
+          - wednsday
+          - thursday 
+          - friday
+          - saturday
+        description: Opening day
+      from:
+        type: string
+        format: '^([01]\d|2[0-3]):?([0-5]\d)$'
+        description: Opening hour
+      to:
+        type: string
+        format: '^([01]\d|2[0-3]):?([0-5]\d)$'
+        description: Closing hour
+  equipment:
+    type: object
+    description: Fabrication machine details.
+    properties:
+      id:
+        type: string
+        format: uuid
+      type:
+        type: string
+        enum:
+          - vinyl cutter
+          - laser cutter
+          - 3D printer
+          - milling machine
+      vendor:
+        type: string
+        enum:
+          - epilog
+          - prusa
+          - gcc
+          - roland
+      name:
+        type: string
+      status:
+        type: string
+        enum:
+          - undefined
+          - off
+          - idle
+          - busy
+      jobsQueued:
+        type: integer
+        format: int32
+  materials:
+    type: object
+    description: Material type and quantity in stock.
+    properties:
+      type:
+        type: string
+        enum:
+          - vinyl
+          - wood
+          - copper
+          - mylar
+          - cardboard
+        description: Available materials for fabrication (do not apply to 3D printer).
+      quantity:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 100
+        description: Percentage of the available stock.
+  contact:
+    type: object
+    description: Fab lab contact person.
+    properties:
+      name:
+        type: string
+        description: Name of the contact.
+      charge:
+        type: string
+        description: The charge of the contact person.
+      emaiL:
+        type: string
+        format: email
+        description: The email of the contact person.
+  details:
+    type: object
+    description: Job details
+    properties:
+      machineId:
+        type: string
+        format: uuid
+        description: Machine identifier.
+      type:
+        type: string
+        enum:
+          - vinyl cutter
+          - laser cutter
+          - 3D printer
+          - milling machine
+        description: Machine type.
+      vendor:
+        type: string
+        enum:
+          - epilog
+          - prusa
+          - gcc
+          - roland
+        description: Machine vendor.
+      jobs:
+        type: array
+        description: Jobs running or queued on a machine.
+        items:
+          $ref: '#/definitions/jobs'
+  jobs:
+    type: object
+    description: Job details.
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: Job unique identifier.
+      status:
+        type: string
+        enum:
+          - running
+          - completed
+          - pending
+          - approved
+          - cancelled
+        description: Job status.
+      process:
+        type: string
+        enum:
+          - cut
+          - halftone
+        description: Supported fabrication processes (do not apply to 3D printer).
+      queue:
+        type: string
+        enum:
+          - local
+          - global
+        description: Indicates whether a process is queued on the local or on the global process queue.
+      priority:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 5
+        description: Jobs priority
+  accepted:
+    type: object
+    title: Accepted Job Details
+    description: Response to job submission.
+    properties:
+      id: 
+        type: string
+        format: uuid
+        description: Job identifier.
+      message:
+        type: string
+        description: Success message.
+      field:
+        type: string
+        description: Additional information.
+  quota:
+    type: object
+    title: Fablab quota returned
+    description: Response to quota request.
+    properties:
+      quota:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 10000
+        description: Available number of monthly API calls
+      expiration:
+        type: string
+        format: date
+        description: Expiration date of the actual quota
+      message:
+        type: string
+        description: Information message from  the server
+  status:
+    type: object
+    title: Job status returned
+    description: The job status
+    required:
+      - id 
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: The job unique identifier
+      status:
+        type: string
+        enum:
+          - running
+          - completed
+          - pending
+          - approved
+          - cancelled
+        description: The job status
+      message:
+        type: string
+        description: Additional server message.
+  deleted:
+    type: object
+    title: Delete a programmed job
+    description: Response to a delete operation.
+    required:
+      - id
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: The job unique identifier.
+      fablab:
+        type: string
+        format: uuid
+        description: Fab lab unique identifier.
+      machine:
+        type: object
+        description: Machine information.
+        properties:
+          name:
+            type: string
+            description: Machine logical name.
+          type:
+            type: string
+            description: Machine type.
+            enum:
+              - vinyl cutter
+              - laser cutter
+              - 3D printer
+              - milling machine
+          queue:
+            type: string
+            enum:
+              - global
+              - local
+            description: The queue where the job was running.
+          message:
+            type: string
+            description: Additional server message.
+  error:
+    type: object
+    title: Error 
+    description: Error response.
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+        description: Error message.
+      field:
+        type: string
+        description: Additional information.  
