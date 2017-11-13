@@ -31,7 +31,9 @@ let dbKeys = {
    api       : 'fablab:configuration:api',
    geopos    : 'fablab:configuration:geoposition',
    opdays    : 'fablab:configuration:openingdays',  
-   materials : 'fablab:materials'
+   materials : 'fablab:materials',
+   machines  : 'fablab:machines',
+   machine   : 'fablab:machine:'  
 }
 
 let rclient = redis.createClient()
@@ -42,101 +44,83 @@ rclient.on('error', err => {
 
 let fabLabDetails = {
   fablab: {
-    coordinates: {}
+    coordinates: {},
+    equipment: []
   }
 }
 
-   async.parallel ({
-     id: function (cb) {
-           db.dbGet(rclient, dbKeys.id, reply => {
-             if (reply !== null) {
-               cb (null, reply)
-             }
+async.parallel ({
+  id: function (cb) {
+        db.dbGet(rclient, dbKeys.id, reply => {
+          if (reply !== null) {
+            cb (null, reply)
+          }
+        })
+      },
+  name: function (cb) { 
+          db.dbGet(rclient, dbKeys.name, reply => {                                                                                                        
+            if (reply !== null) {                                                                                                                       
+              cb (null, reply)                                                                                                       
+            }                                                                                                                                           
+          })
+        },
+  web: function (cb) {
+         db.dbGet(rclient, dbKeys.web, reply => {                                                                                                        
+           if (reply !== null) {                                                                                                                       
+             cb (null, reply)                                                                                                       
+           }                                                                                                                                           
+         })
+       },
+  api: function (cb) {
+         db.dbGet(rclient, dbKeys.api, reply => {                                                                                                        
+           if (reply !== null) {                                                                                                                       
+             cb (null, reply)                                                                                                       
+           }                                                                                                                                           
+         })
+       },
+  geopos: function (cb) {
+            db.dbGetHash(rclient, dbKeys.geopos, reply => {                                                    
+               if (reply !== null) {
+                 cb (null, reply)
+               }                        
+            })
+          },
+  opdays: function (cb) {
+            db.dbGetSetAll(rclient, dbKeys.opdays, reply => { 
+               if (reply !== null) {
+                 cb (null, reply)
+               }                        
+            })
+          },
+  equip: function (cb) {
+           db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
+              let machines = []
+              if (reply.length !== 0) {
+                reply.forEach ( (key, index) => {
+                  db.dbGetHash(rclient, dbKeys.machine + key, machine => {
+                     if (machine != null) {
+                       machines.push(machine)
+                     }
+                  })
+                  if (index === Object.keys(reply).length -1) {
+                    cb (null, machines)
+                  }
+                })
+              } else {
+               cb (null, machines)
+              }
            })
-         },
-     name: function (cb) { 
-             db.dbGet(rclient, dbKeys.name, reply => {                                                                                                        
-               if (reply !== null) {                                                                                                                       
-                 cb (null, reply)                                                                                                       
-               }                                                                                                                                           
-             })
-           },
-     web: function (cb) {
-            db.dbGet(rclient, dbKeys.web, reply => {                                                                                                        
-              if (reply !== null) {                                                                                                                       
-                cb (null, reply)                                                                                                       
-              }                                                                                                                                           
-            })
-          },
-     api: function (cb) {
-            db.dbGet(rclient, dbKeys.api, reply => {                                                                                                        
-              if (reply !== null) {                                                                                                                       
-                cb (null, reply)                                                                                                       
-              }                                                                                                                                           
-            })
-          },
-     geopos: function (cb) {
-               db.dbGetHash(rclient, dbKeys.geopos, reply => {                                                    
-                  if (reply !== null) {
-                    cb (null, reply)
-                  }                        
-               })
-             },
-     opdays: function (cb) {
-               db.dbGetSetAll(rclient, dbKeys.opdays, reply => { 
-                  if (reply !== null) {
-                    cb (null, reply)
-                  }                        
-               })
-             }
-     }, function (err, results) {
-          fabLabDetails.fablab.id = results.id 
-          fabLabDetails.fablab.name = results.name
-          fabLabDetails.fablab.web = results.web
-          fabLabDetails.fablab.capacity = 0
-          fabLabDetails.fablab.address = ''
-          fabLabDetails.fablab.coordinates.latitude = results.geopos.latitude
-          fabLabDetails.fablab.coordinates.longitude = results.geopos.longitude
-     })
-
-/*let fabLabDetails = {
-  fablab: {
-    id: 'xxxxxxxxx',
-    name: 'FabLab@CEU',
-    web: 'http://www.xxxxxx',
-    capacity: 0,
-    address: {
-      street: 'Avda. de Montepríncipe S/N',
-      postCode: '28668',
-      state: 'Madrid',
-      country: 'Spain',
-      countryCode: 'ES'
-    },
-    coordinates: {
-      latitude: 40.3999665, 
-      longitude: -3.8354167
-    },
-    contact: {
-      name: 'Covadonga Lorenzo',
-      charge: 'Fab Lab Directress',
-      email: 'clorenzo@ceu.es'
-    },
-    openingDays: [
-      {day: 'monday', from: '9:00', to: '17:00'},
-      {day: 'tueday', from: '9:00', to: '17:00'},
-      {day: 'wednday', from: '9:00', to: '17:00'},
-      {day: 'thursday', from: '9:00', to: '17:00'},
-      {day: 'friday', from: '9:00', to: '17:00'}
-    ],
-    equipment: [],
-    materials: []
-  },
-  jobs: {
-    running: 0,
-    queued:  0,
-    details: []
-  }
-}*/
+         }
+  }, function (err, results) {
+       fabLabDetails.fablab.id = results.id 
+       fabLabDetails.fablab.name = results.name
+       fabLabDetails.fablab.web = results.web
+       fabLabDetails.fablab.capacity = 0
+       fabLabDetails.fablab.address = ''
+       fabLabDetails.fablab.coordinates.latitude = results.geopos.latitude
+       fabLabDetails.fablab.coordinates.longitude = results.geopos.longitude
+       fabLabDetails.fablab.equipment = results.equip
+  })
 
 let app = express()
 let child = cp.fork('./gateway/server.js')
@@ -152,11 +136,13 @@ app.set('json spaces', 2)
 
 let client = new Siren() 
 
-//connect to the fablab gateway every 10 secs.
+//connect to the fablab gateway every 60 secs.
 var scheduler = new Scheduler(1);
 
 scheduler.add(60000, function(done){
 client.get(gateway.baseURL, (err, entity) => {
+  let details = ['id', 'name', 'vendor', 'type', 'state']
+
   if (err) throw err
   logger.info('@wrapper: Retrieving fab lab status...'); 
   entity.links()
@@ -165,14 +151,22 @@ client.get(gateway.baseURL, (err, entity) => {
     .forEach(link => client.follow(link, (err,  entity)=> {
         entity.entities()
              .forEach(link => {
-               let machineDetails = {}
-               machineDetails.id = link.data.properties.id
-               machineDetails.type = link.data.properties.type
-               machineDetails.vendor = link.data.properties.vendor
-               machineDetails.name = link.data.properties.name
-               machineDetails.state = link.data.properties.state
-               fabLabDetails.fablab.equipment.push(machineDetails)
-              })
+               let machineId = link.data.properties.id 
+               db.dbUsetAdd(rclient, dbKeys.machines, machineId, reply => {
+                 let hash = []
+                 if (reply === 1) {
+                   //new machine emit the event 'serviceUp' on the websocket channel
+                   details.forEach ( (key, index) => {
+                     hash.push(key)
+                     hash.push(link.data.properties[key])
+                     if (index === details.length -1) {
+                       db.dbSetHash (rclient, dbKeys.machine + machineId, hash, reply => {
+                       }) 
+                     }
+                   })                  
+                 }
+               })
+            })
        })
     )
 })
