@@ -262,6 +262,11 @@ done()
 })
 
 scheduler.add(10000, function(done){
+ //add to the array object a new method called diff
+ Array.prototype.diff = (a) =>  {
+    return this.filter((i) => {return a.indexOf(i) < 0 });
+ }
+
  machinesId.forEach (key => {
    console.log('>>>>>>>> ' + key + ' ' + machinesId.length )
  })
