@@ -12,6 +12,9 @@ const db = require('./db/db')
 const swaggerTools = require('swagger-tools')
 const YAML = require('yamljs')
 const swaggerDoc = YAML.load('swagger.yaml')
+const WebSocket = require('ws')
+
+//const ws = new WebSocket('ws://localhost:9999')
 
 swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
   // Serve the Swagger documents and Swagger UI
@@ -48,6 +51,52 @@ let fabLabDetails = {
     equipment: []
   }
 }
+
+//clean up db before exiting
+
+process.stdin.resume() //so the program will not close instantly
+
+
+let exitHandler = function () {
+  db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
+    if (reply.length > 0) {
+       reply.forEach ( (key, index) => {
+         db.dbDel(rclient, dbKeys.machine + key, op => {
+           //log op
+           if (index === reply.length -1) {
+             db.dbDel(rclient, dbKeys.machines, op => {
+               console.log('Database deleted...exiting.')
+               process.exit (0)
+             })
+           }
+         })
+       })
+     } else {
+       console.log('nothing to delete...exiting.')
+       process.exit (0)
+     }
+  })
+}
+
+process.on ('SIGINT', () => {
+  console.log ('\nDetected CTRL+C...');
+  exitHandler() 
+})
+
+process.on('SIGUSR1', () => {
+  console.log ('\nDetected SIGUSR1...');
+  exitHandler()
+})
+
+process.on('SIGUSR2', () => {                                                                                                                  
+  console.log ('\nDetected SIGUSR2...');
+  exitHandler()
+})
+
+/*process.on('uncaughtException', () => {
+  console.log ('\nUncaught exception...');
+  exitHandler()
+})*/
 
 async.parallel ({
   id: function (cb) {
@@ -155,12 +204,18 @@ client.get(gateway.baseURL, (err, entity) => {
                db.dbUsetAdd(rclient, dbKeys.machines, machineId, reply => {
                  let hash = []
                  if (reply === 1) {
-                   //new machine emit the event 'serviceUp' on the websocket channel
+                  /* ws.on('open', function open () {
+                      ws.send({
+                        id      : fabLabDetails.fablab.id, 
+                        event   : 'serviceUp' 
+                      })
+                   })*/
                    details.forEach ( (key, index) => {
                      hash.push(key)
                      hash.push(link.data.properties[key])
                      if (index === details.length -1) {
                        db.dbSetHash (rclient, dbKeys.machine + machineId, hash, reply => {
+                         //log
                        }) 
                      }
                    })                  
