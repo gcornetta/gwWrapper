@@ -14,8 +14,12 @@ const YAML = require('yamljs')
 const swaggerDoc = YAML.load('swagger.yaml')
 const WebSocket = require('ws')
 
-//const ws = new WebSocket('ws://localhost:9999')
+const ws = new WebSocket('ws://localhost:9999')
 
+ws.on ('error', (err) => {
+  logger.error(`@wrapper: Websocket error: ${err}.`)
+})
+  
 swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
   // Serve the Swagger documents and Swagger UI
   app.use(middleware.swaggerUi())
@@ -42,7 +46,7 @@ let dbKeys = {
 let rclient = redis.createClient()
 
 rclient.on('error', err => {
-  self.log(`error: database error: ${err}`)
+  logger.error (`@wrapper: Database error: ${err}`)
 })
 
 let fabLabDetails = {
@@ -65,21 +69,21 @@ let exitHandler = function () {
            //log op
            if (index === reply.length -1) {
              db.dbDel(rclient, dbKeys.machines, op => {
-               console.log('Database deleted...exiting.')
+               logger.info ('@wrapper: Database deleted...exiting.')
                process.exit (0)
              })
            }
          })
        })
      } else {
-       console.log('nothing to delete...exiting.')
+       logger.info ('@wrapper: Nothing to delete...exiting.')
        process.exit (0)
      }
   })
 }
 
 process.on ('SIGINT', () => {
-  console.log ('\nDetected CTRL+C...');
+  logger.info ('@wrapper: Detected CTRL+C...');
   exitHandler() 
 })
 
@@ -98,78 +102,80 @@ process.on('SIGUSR2', () => {
   exitHandler()
 })*/
 
-async.parallel ({
-  id: function (cb) {
-        db.dbGet(rclient, dbKeys.id, reply => {
-          if (reply !== null) {
-            cb (null, reply)
-          }
-        })
-      },
-  name: function (cb) { 
-          db.dbGet(rclient, dbKeys.name, reply => {                                                                                                        
-            if (reply !== null) {                                                                                                                       
-              cb (null, reply)                                                                                                       
-            }                                                                                                                                           
-          })
-        },
-  web: function (cb) {
-         db.dbGet(rclient, dbKeys.web, reply => {                                                                                                        
-           if (reply !== null) {                                                                                                                       
-             cb (null, reply)                                                                                                       
-           }                                                                                                                                           
-         })
-       },
-  api: function (cb) {
-         db.dbGet(rclient, dbKeys.api, reply => {                                                                                                        
-           if (reply !== null) {                                                                                                                       
-             cb (null, reply)                                                                                                       
-           }                                                                                                                                           
-         })
-       },
-  geopos: function (cb) {
-            db.dbGetHash(rclient, dbKeys.geopos, reply => {                                                    
-               if (reply !== null) {
-                 cb (null, reply)
-               }                        
-            })
-          },
-  opdays: function (cb) {
-            db.dbGetSetAll(rclient, dbKeys.opdays, reply => { 
-               if (reply !== null) {
-                 cb (null, reply)
-               }                        
-            })
-          },
-  equip: function (cb) {
-           db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
-              let machines = []
-              if (reply.length !== 0) {
-                reply.forEach ( (key, index) => {
-                  db.dbGetHash(rclient, dbKeys.machine + key, machine => {
-                     if (machine != null) {
-                       machines.push(machine)
-                     }
-                  })
-                  if (index === Object.keys(reply).length -1) {
-                    cb (null, machines)
-                  }
-                })
-              } else {
-               cb (null, machines)
+let refresh = function () {
+    async.parallel ({
+      id: function (cb) {
+            db.dbGet(rclient, dbKeys.id, reply => {
+              if (reply !== null) {
+                cb (null, reply)
               }
-           })
-         }
-  }, function (err, results) {
-       fabLabDetails.fablab.id = results.id 
-       fabLabDetails.fablab.name = results.name
-       fabLabDetails.fablab.web = results.web
-       fabLabDetails.fablab.capacity = 0
-       fabLabDetails.fablab.address = ''
-       fabLabDetails.fablab.coordinates.latitude = results.geopos.latitude
-       fabLabDetails.fablab.coordinates.longitude = results.geopos.longitude
-       fabLabDetails.fablab.equipment = results.equip
-  })
+            })
+          },
+      name: function (cb) { 
+              db.dbGet(rclient, dbKeys.name, reply => {                                                                                                        
+                if (reply !== null) {                                                                                                                       
+                  cb (null, reply)                                                                                                       
+                }                                                                                                                                           
+              })
+            },
+      web: function (cb) {
+             db.dbGet(rclient, dbKeys.web, reply => {                                                                                                        
+               if (reply !== null) {                                                                                                                       
+                 cb (null, reply)                                                                                                       
+               }                                                                                                                                           
+             })
+           },
+      api: function (cb) {
+             db.dbGet(rclient, dbKeys.api, reply => {                                                                                                        
+               if (reply !== null) {                                                                                                                       
+                 cb (null, reply)                                                                                                       
+               }                                                                                                                                           
+             })
+           },
+      geopos: function (cb) {
+                db.dbGetHash(rclient, dbKeys.geopos, reply => {
+                   if (Object.keys(reply).length !== 0) {
+                     cb (null, reply)
+                   }                        
+                })
+              },
+      opdays: function (cb) {
+                db.dbGetSetAll(rclient, dbKeys.opdays, reply => {
+                   if (reply.length !== 0) {
+                     cb (null, reply)
+                   }                        
+                })
+              },
+      equip: function (cb) {
+               db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
+                  let machines = []
+                  if (reply.length !== 0) {
+                    reply.forEach ( (key, index) => {
+                      db.dbGetHash(rclient, dbKeys.machine + key, machine => {
+                         if (machine != null) {
+                           machines.push(machine)
+                         }
+                      })
+                      if (index === Object.keys(reply).length -1) {
+                        cb (null, machines)
+                      }
+                    })
+                  } else {
+                   cb (null, machines)
+                  }
+               })
+             }
+      }, (err, results) => {
+           fabLabDetails.fablab.id = results.id 
+           fabLabDetails.fablab.name = results.name
+           fabLabDetails.fablab.web = results.web
+           fabLabDetails.fablab.capacity = 0
+           fabLabDetails.fablab.address = ''
+           fabLabDetails.fablab.coordinates.latitude = results.geopos.latitude
+           fabLabDetails.fablab.coordinates.longitude = results.geopos.longitude
+           fabLabDetails.fablab.equipment = results.equip
+      })
+}
 
 let app = express()
 let child = cp.fork('./gateway/server.js')
@@ -185,10 +191,12 @@ app.set('json spaces', 2)
 
 let client = new Siren() 
 
-//connect to the fablab gateway every 60 secs.
-var scheduler = new Scheduler(1);
+let machinesId = []
 
-scheduler.add(60000, function(done){
+//connect to the fablab gateway every 60 secs.
+let scheduler = new Scheduler(2);
+
+scheduler.add(10000, function(done){
 client.get(gateway.baseURL, (err, entity) => {
   let details = ['id', 'name', 'vendor', 'type', 'state']
 
@@ -197,34 +205,66 @@ client.get(gateway.baseURL, (err, entity) => {
   entity.links()
     .filter(link => link.title !== undefined && link.title.includes('machine'))
     .map(link => link.href)
-    .forEach(link => client.follow(link, (err,  entity)=> {
+    .forEach(link => client.follow(link, (err,  entity) => {
         entity.entities()
              .forEach(link => {
                let machineId = link.data.properties.id 
                db.dbUsetAdd(rclient, dbKeys.machines, machineId, reply => {
                  let hash = []
                  if (reply === 1) {
-                  /* ws.on('open', function open () {
+                   machinesId.push(machineId)
+                   ws.on('open', function open () {
                       ws.send({
                         id      : fabLabDetails.fablab.id, 
                         event   : 'serviceUp' 
                       })
-                   })*/
+                   })
                    details.forEach ( (key, index) => {
                      hash.push(key)
                      hash.push(link.data.properties[key])
                      if (index === details.length -1) {
                        db.dbSetHash (rclient, dbKeys.machine + machineId, hash, reply => {
-                         //log
+                         if (reply === 'OK') {
+                           logger.info(`@wrapper: machine ${machineId} info saved on DB.`)
+                           refresh ()
+                         } else {
+                           logger.error(`@wrapper: trouble updating DB.`)
+                         }
                        }) 
                      }
                    })                  
+                 } else {
+                   db.dbGetHash(rclient, dbKeys.machine + machineId, reply => {
+                      let hash = []
+                      if (reply.state !== link.data.properties.state) {
+                        hash.push('state')
+                        hash.push(link.data.properties.state)
+                        db.dbSetHash (rclient, dbKeys.machine + machineId, hash, reply => {
+                         logger.info(`@wrapper: State change. Machine ${machineId} is now ${hash[1]}.`) 
+                         refresh ()
+                         ws.on('open', function open () {
+                           ws.send({
+                             id      : fabLabDetails.fablab.id,
+                             event   : 'machineStateChange',
+                             mId     :  machineId
+                           })
+                         })
+                       })
+                      }
+                   })
                  }
                })
             })
        })
     )
 })
+done()
+})
+
+scheduler.add(10000, function(done){
+ machinesId.forEach (key => {
+   console.log('>>>>>>>> ' + key + ' ' + machinesId.length )
+ })
 done()
 })
 
