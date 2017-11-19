@@ -37,8 +37,11 @@ let dbKeys = {
    web       : 'fablab:configuration:web',
    api       : 'fablab:configuration:api',
    geopos    : 'fablab:configuration:geoposition',
-   opdays    : 'fablab:configuration:openingdays',  
-   materials : 'fablab:materials',
+   opdays    : 'fablab:configuration:openingdays',
+   opday     : 'fablab:openingdays:',
+   address   : 'fablab:address:detailed',
+   contact   : 'fablab:contact',   
+   materials : 'fablab:materials:',
    machines  : 'fablab:machines',
    machine   : 'fablab:machine:'  
 }
@@ -49,11 +52,11 @@ rclient.on('error', err => {
   logger.error (`@wrapper: Database error: ${err}`)
 })
 
+let materials = ['wood', 'copper', 'acrylic', 'vinyl', 'mylar', 'cardboard'] 
+
 let fabLabDetails = {
-  fablab: {
-    coordinates: {},
-    equipment: []
-  }
+    fablab: {},
+    jobs: {}
 }
 
 //clean up db before exiting
@@ -132,6 +135,13 @@ let refresh = function () {
                }                                                                                                                                           
              })
            },
+      address: function (cb) {
+                db.dbGetHash(rclient, dbKeys.address, reply => {
+                   if (Object.keys(reply).length !== 0) {
+                     cb (null, reply)
+                   }
+                })
+              },
       geopos: function (cb) {
                 db.dbGetHash(rclient, dbKeys.geopos, reply => {
                    if (Object.keys(reply).length !== 0) {
@@ -139,10 +149,34 @@ let refresh = function () {
                    }                        
                 })
               },
+      contact: function (cb) {
+                db.dbGetHash(rclient, dbKeys.contact, reply => {
+                   if (Object.keys(reply).length !== 0) {
+                     cb (null, reply)
+                   }
+                })
+              },
       opdays: function (cb) {
                 db.dbGetSetAll(rclient, dbKeys.opdays, reply => {
-                   if (reply.length !== 0) {
-                     cb (null, reply)
+                        let opDays = []
+                    if (reply.length !== 0) {
+
+                    reply.forEach ( (day, index) => {
+                       db.dbGetHash(rclient, dbKeys.opday + day, rep => {
+                         let d = {} 
+                         if (Object.keys(rep).length !== 0) {
+                           d.day = day     
+                           d.from = rep.from                                                                                                     
+                           d.to = rep.to                                                                                                         
+                           opDays.push(d)
+
+                           if (index === reply.length -1) {
+                             cb (null, opDays)
+                           }
+                         }
+                       })
+                     })
+
                    }                        
                 })
               },
@@ -164,16 +198,37 @@ let refresh = function () {
                    cb (null, machines)
                   }
                })
-             }
+             },
+   materials: function (cb) {
+                    let mat = []
+
+                    materials.forEach ( (material, index) => {
+                       m = {}
+                       db.dbGet(rclient, dbKeys.materials + material, reply => {
+                         if (reply !== null) {
+                           m.type = material
+                           m.quantity = reply
+                           mat.push(m)
+                         }
+                           if (index === materials.length -1) {
+                             cb (null, mat)
+                           }
+             
+                       })
+                     })
+              }
       }, (err, results) => {
-           fabLabDetails.fablab.id = results.id 
-           fabLabDetails.fablab.name = results.name
-           fabLabDetails.fablab.web = results.web
-           fabLabDetails.fablab.capacity = 0
-           fabLabDetails.fablab.address = ''
-           fabLabDetails.fablab.coordinates.latitude = results.geopos.latitude
-           fabLabDetails.fablab.coordinates.longitude = results.geopos.longitude
-           fabLabDetails.fablab.equipment = results.equip
+           fabLabDetails['fablab'].id = results.id 
+           fabLabDetails['fablab'].name = results.name
+           fabLabDetails['fablab'].web = results.web
+           fabLabDetails['fablab'].api= results.api
+           fabLabDetails['fablab'].capacity = 0
+           fabLabDetails['fablab'].address = results.address
+           fabLabDetails['fablab'].coordinates = results.geopos
+           fabLabDetails['fablab'].contact = results.contact
+           fabLabDetails['fablab'].openingDays = results.opdays
+           fabLabDetails['fablab'].equipment = results.equip
+           fabLabDetails['fablab'].materials = results.materials
       })
 }
 
@@ -191,6 +246,7 @@ app.set('json spaces', 2)
 
 let client = new Siren() 
 
+// global object with all the detected machine Ids
 let machinesId = []
 
 //connect to the fablab gateway every 60 secs.
