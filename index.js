@@ -20,6 +20,10 @@ ws.on ('error', (err) => {
   logger.error(`@wrapper: Websocket error: ${err}.`)
 })
   
+ws.on ('message', (data) => {
+  logger.info(`@wrapper:  ${data}.`)
+});
+
 swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
   // Serve the Swagger documents and Swagger UI
   app.use(middleware.swaggerUi())
@@ -269,12 +273,18 @@ client.get(gateway.baseURL, (err, entity) => {
                  let hash = []
                  if (reply === 1) {
                    machinesId.push(machineId)
-                   ws.on('open', function open () {
-                      ws.send({
-                        id      : fabLabDetails.fablab.id, 
-                        event   : 'serviceUp' 
+                   db.dbGet(rclient, dbKeys.id, reply => {
+                     if (reply !== null) {
+                       ws.send(JSON.stringify({
+                         id      : reply,
+                         mId     : machineId,
+                         event   : 'serviceUp'
+                       }), (err) => {
+                         logger.error(`@wrapper: ${err}.`)
                       })
+                     }
                    })
+
                    details.forEach ( (key, index) => {
                      hash.push(key)
                      hash.push(link.data.properties[key])
@@ -292,19 +302,26 @@ client.get(gateway.baseURL, (err, entity) => {
                  } else {
                    db.dbGetHash(rclient, dbKeys.machine + machineId, reply => {
                       let hash = []
-                      if (reply.state !== link.data.properties.state) {
+                      
+                      if (reply !== null && (reply.state !== link.data.properties.state)) {
                         hash.push('state')
                         hash.push(link.data.properties.state)
                         db.dbSetHash (rclient, dbKeys.machine + machineId, hash, reply => {
                          logger.info(`@wrapper: State change. Machine ${machineId} is now ${hash[1]}.`) 
                          refresh ()
-                         ws.on('open', function open () {
-                           ws.send({
-                             id      : fabLabDetails.fablab.id,
-                             event   : 'machineStateChange',
-                             mId     :  machineId
-                           })
-                         })
+  
+                         db.dbGet(rclient, dbKeys.id, reply => {
+                           if (reply !== null) {
+                             ws.send(JSON.stringify({
+                               id      : reply,                                                                                                      
+                               mId     : machineId,
+                               event   : 'machineStateChange',
+                               state   : hash[1]
+                             }), (err) => {
+                               logger.error(`@wrapper: ${err}.`)
+                             })
+                           }
+                         })         
                        })
                       }
                    })
@@ -317,15 +334,64 @@ client.get(gateway.baseURL, (err, entity) => {
 done()
 })
 
-scheduler.add(10000, function(done){
+scheduler.add(10000, function(done) {
  //add to the array object a new method called diff
- Array.prototype.diff = (a) =>  {
+ Array.prototype.diff = function (a) {
     return this.filter((i) => {return a.indexOf(i) < 0 });
  }
 
- machinesId.forEach (key => {
-   console.log('>>>>>>>> ' + key + ' ' + machinesId.length )
- })
+  client.get(gateway.baseURL, (err, entity) => {
+    let services = []
+
+    if (err) throw err
+    logger.info('@wrapper: Retrieving fab lab status...');
+    let links = entity.links()
+      .filter(link => link.title !== undefined && link.title.includes('machine'))
+     
+     if (links.length !== 0 ) {
+        links.map(link => link.href)
+         .forEach(link => client.follow(link, (err,  entity) => {
+            let index = 0
+            entity.entities()
+              .forEach(link => {
+                  index++
+                  services.push(link.data.properties.id)
+              })
+              if (index === links.length) {
+                db.dbGet(rclient, dbKeys.id, reply => {
+                  if (reply !== null) {
+                    if (machinesId.length !== 0) {
+                      machinesId
+                        .diff(services)
+                        .forEach( service => {
+                           if (!services.includes(service)) {
+                              //remove it from machinesId
+                              ws.send(JSON.stringify({
+                                id      : reply,
+                                event   : 'serviceDown'
+                              }), (err) => {
+                                logger.error(`@wrapper: ${err}.`)
+                              })                            
+                           }
+                        })
+                    }
+                  }
+                })
+              }
+          }))
+     } else {
+        db.dbGet(rclient, dbKeys.id, reply => {
+          if (reply !== null) {
+            ws.send(JSON.stringify({                                                                                                
+                      id      : reply,
+                      event   : 'fabLabDown'
+                    }), (err) => {
+                         logger.error(`@wrapper: ${err}.`)
+                    })                                                                                                                       
+           }
+        })
+     }
+   })
 done()
 })
 
@@ -378,3 +444,4 @@ app.use(function(err, req, res, next) {
 app.listen(3000, function () {
   logger.info('@wrapper: API wrapper listening on port 3000')
 })
+
