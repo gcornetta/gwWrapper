@@ -13,6 +13,7 @@ const swaggerTools = require('swagger-tools')
 const YAML = require('yamljs')
 const swaggerDoc = YAML.load('swagger.yaml')
 const WebSocket = require('ws')
+const cron = require('node-schedule')
 
 const ws = new WebSocket('ws://localhost:9999')
 
@@ -47,7 +48,9 @@ let dbKeys = {
    contact   : 'fablab:contact',   
    materials : 'fablab:materials:',
    machines  : 'fablab:machines',
-   machine   : 'fablab:machine:'  
+   machine   : 'fablab:machine:',
+   quota     : 'fablab:configuration:quota',
+   calls     : 'fablab:apicalls'  
 }
 
 let rclient = redis.createClient()
@@ -236,6 +239,26 @@ let refresh = function () {
       })
 }
 
+let initCalls = function () {
+   db.dbGet(rclient, dbKeys.calls, reply => {
+     if (reply === null) {
+       db.dbGet(rclient, dbKeys.quota, quota => {
+         if (quota === null) {
+           logger.error (`@wrapper: DB error, cannot retrieve API quota.`)
+         } else {
+           db.dbSet(rclient, dbKeys.calls, quota, reply => {
+             if (reply === 'OK') {
+               logger.info(`@wrapper: API quota initialized to ${quota}.`)
+             } else {
+               logger.error(`@wrapper: DB error, cannot write.`)
+             }
+           }) 
+         }
+       })
+      }
+   })
+}
+
 let app = express()
 let child = cp.fork('./gateway/server.js')
 
@@ -252,6 +275,27 @@ let client = new Siren()
 
 // global object with all the detected machine Ids
 let machinesId = []
+
+//initialize the number of allowed API calls
+initCalls()
+
+// start the scheduler to reset quota the 1st day of every month
+let job  = cron.scheduleJob('* 0 0 1 * *', () => {
+  db.dbGet(rclient, dbKeys.quota, quota => {
+    if (quota === null ) {
+      logger.error (`@wrapper: DB error, cannot retrieve API quota.`)
+    } else {
+      db.dbSet(rclient, dbKeys.calls, quota, reply => {
+        if (reply === 'OK') {
+          logger.info(`@wrapper: API quota reset to ${quota}.`)
+        } else {
+          logger.info(`@wrapper: DB error, cannot reset quota.`)
+        }
+      })
+    }
+  })
+})
+
 
 //connect to the fablab gateway every 60 secs.
 let scheduler = new Scheduler(2);
@@ -397,8 +441,13 @@ done()
 
 // API endpoints
 apiRouter.get('/', function (req, res) {
-    res.statusCode = 200
-    res.json(fabLabDetails)
+    if (fabLabDetails !== null) {
+      res.statusCode = 200
+      res.json(fabLabDetails)
+    } else {
+      res.statusCode = 500
+      res.json = ({code: 1, message: 'Internal server error. Please, try later.', details: 'Fablab communication error.'})
+    }
 })
 
 apiRouter.post('/jobs', function (req, res) {
@@ -416,7 +465,27 @@ apiRouter.post('/jobs', function (req, res) {
     res.statusCode = 200
     res.json('OK') //devolver un id para el trabajo si se acepta
   }
-}) 
+})
+
+apiRouter.get('/quota', function(req, res) {
+  db.dbGet(rclient, dbKeys.id, id => {
+    if (id === null) {
+      res.statusCode = 500
+      res.json = ('Internal server error. Please, try later.')
+    } else {
+      db.dbGet(rclient, dbKeys.calls, reply => {
+        if (reply === null) {
+          res.statusCode = 500
+          res.json = ({code: 2, message: 'Internal server error. Please, try later.', details: 'Database error.'})
+        } else {
+          res.statusCode = 200
+          res.json({id: id, quota: reply})
+        }
+      })
+    }
+  })
+})
+ 
 //implementar GET /quota que devuelve la cuota de llamadas a API remanentes
 apiRouter.get('/jobs/status/:id', function (req, res) {
 // returns status

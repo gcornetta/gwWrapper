@@ -17,7 +17,7 @@ paths:
   /:
     get:
       summary: Fab lab information.
-      description: | 
+      description: > 
         The root endpoint */* returns information about the fablab
         structure and general information, as well as a snapshot of 
         the active jobs, machine status and fablab load.
@@ -28,14 +28,14 @@ paths:
           description: A JSON object with the fablab description.
           schema:
             $ref: '#/definitions/fablab'
-        default:
-          description: Unexpected error.
+        500:
+          description: Internal server error.
           schema:
             $ref: '#/definitions/error'
   /quota:
     get:
       summary: Get the Fab lab API call quota
-      description: | 
+      description: > 
         The */quota* endpoint returns the information about the API call
         quota available for the fablab.
       tags:
@@ -45,8 +45,8 @@ paths:
           description: A JSON object with the fablab quota.
           schema:
             $ref: '#/definitions/quota'
-        default:
-          description: Unexpected error.
+        500:
+          description: Interval server error.
           schema:
             $ref: '#/definitions/error'
   /jobs:
@@ -54,7 +54,7 @@ paths:
       summary: Submit a job for fabrications.
       consumes:
          - multipart/form-data
-      description: |
+      description: >
         The */jobs* endpoint accepts the machine type, the fabrication process
         and the material in the query string, and the file with the design in
         the request body.
@@ -424,19 +424,16 @@ definitions:
     title: Fablab quota returned
     description: Response to quota request.
     properties:
+      id:
+        type: string
+        format: uuid
+        description: The Fab lab unique identifier
       quota:
         type: integer
         format: int32
         minimum: 0
         maximum: 10000
         description: Available number of monthly API calls
-      expiration:
-        type: string
-        format: date
-        description: Expiration date of the actual quota
-      message:
-        type: string
-        description: Information message from  the server
   status:
     type: object
     title: Job status returned
@@ -510,6 +507,6 @@ definitions:
       message:
         type: string
         description: Error message.
-      field:
+      details:
         type: string
         description: Additional information.  
