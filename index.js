@@ -14,8 +14,11 @@ const YAML = require('yamljs')
 const swaggerDoc = YAML.load('swagger.yaml')
 const WebSocket = require('ws')
 const cron = require('node-schedule')
+const request = require('request')
 
 const ws = new WebSocket('ws://localhost:9999')
+
+require('dotenv').config()
 
 ws.on ('error', (err) => {
   logger.error(`@wrapper: Websocket error: ${err}.`)
@@ -450,8 +453,18 @@ apiRouter.get('/', function (req, res) {
     }
 })
 
+request.post({url: 'http://piwrapper.local:8888/api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) {
+
+console.log('>>>>>>>>>>>>>< ' + JSON.stringify(JSON.parse(response.body)))
+})
+
 apiRouter.post('/jobs', function (req, res) {
-  //returns job id machine id
+  // refresh di fablabdetails
+  // vedere quali sono le macchine connesse
+  // se c'è quella specificata ==> request di connessione ottenere token creare un id e realizzare il post
+    //aspettare la risposta con l'id del job
+    //returns job id machine id fablab id
+  // se non c'è ritornare un errore
   var d = new Date()
   let machine  = req.query.machine
   let process  = req.query.process
@@ -486,7 +499,6 @@ apiRouter.get('/quota', function(req, res) {
   })
 })
  
-//implementar GET /quota que devuelve la cuota de llamadas a API remanentes
 apiRouter.get('/jobs/status/:id', function (req, res) {
 // returns status
    res.statusCode = 200

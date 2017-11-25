@@ -18,6 +18,7 @@
     "nschedule": "^0.4.0",
     "randomstring": "^1.1.5",
     "redis": "^2.8.0",
+    "request": "^2.83.0",
     "siren-client": "^1.4.0",
     "strftime": "^0.10.0",
     "super-siren": "^2.0.2",

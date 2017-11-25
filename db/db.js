@@ -7,6 +7,17 @@ module.exports.dbGet = function (client, key, cb) {
    })
 }
 
+module.exports.dbSet = function (client, key, value, cb) {      
+   client.set(key, value, (err, reply) => {                                                                                                    
+     if (err) {                                                                                                                                
+       vorpal.log(`${err}.`)                                                                                                                   
+     } else {                                                                                                                                  
+       //optional callback                                                                                                                     
+       typeof cb === 'function' && cb(reply)                                                                                                   
+     }                                                                                                                                         
+   })                                                                                                                                          
+} 
+
 module.exports.dbGetHash = function (client, key, cb) {
    client.hgetall(key, (err, reply) => {
      if (err) throw err
