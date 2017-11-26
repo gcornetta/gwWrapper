@@ -15,8 +15,7 @@ const swaggerDoc = YAML.load('swagger.yaml')
 const WebSocket = require('ws')
 const cron = require('node-schedule')
 const request = require('request')
-
-//const hostname = require('os').hostname()
+const formidable = require('formidable')
 
 const ws = new WebSocket('ws://localhost:9999')
 
@@ -229,13 +228,18 @@ let refresh = function () {
                        })
                      })
               },
-   details: function (cb) {
+   jobs: function (cb) {
+               let jobs = {}
                db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
-                  let jobs = []
+                  let details = []
                   if (reply.length !== 0) {
                     reply.forEach ( (key, index) => {
                       db.dbGetHash(rclient, dbKeys.machine + key, machine => {
+                         let m = {}
                          if (machine != null) {
+                           m.machineId = machine.id
+                           m.type = machine.type
+                           m.vendor = machine.vendor
                            request.post({url: machine.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) {
                                let options = {
                                    url: machine.url + 'api/jobs',
@@ -244,12 +248,16 @@ let refresh = function () {
                                    }
                                }
                                request.get(options ,function(error, response, body) {
-                                  jobs.concat(JSON.parse(response.body).jobs)
+                                  m.jobs = JSON.parse(response.body).jobs
+                                  details.push(m)
                                })
                            })
                          }
                       })
                       if (index === Object.keys(reply).length -1) {
+                        jobs.running = 0
+                        jobs.queued = 0
+                        jobs.details = details
                         cb (null, jobs)
                       }
                     })
@@ -270,7 +278,7 @@ let refresh = function () {
            fabLabDetails['fablab'].openingDays = results.opdays
            fabLabDetails['fablab'].equipment = results.equip
            fabLabDetails['fablab'].materials = results.materials
-           fabLabDetails['jobs'].details = results.details
+           fabLabDetails['jobs'] = results.jobs
       })
 }
 
@@ -486,25 +494,52 @@ apiRouter.get('/', function (req, res) {
 })
 
 apiRouter.post('/jobs', function (req, res) {
-  // refresh di fablabdetails
+  let machine  = req.query.machine
+  let process  = req.query.process
+  let material = req.query.material
+  let design 
+
+  if (machine === undefined) {
+    res.statusCode = 400
+    res.json('Bad request')
+    //devolver error si se rechaza el trabajo
+  } else if (machine !== '3D printer' && process === undefined && material === undefined) {
+    res.statusCode = 400
+    res.json('Bad request')
+  } else { 
+    let form = new formidable.IncomingForm()
+    form.uploadDir = './'
+    form.keepExtensions = true
+    form.parse(req)
+
+    form.on('fileBegin', (name, file) => {
+      design = file.path = file.name
+    })
+
+    form.on('end', ()  => {
+      refresh()
+      let m = {} 
+      //check if fabLabDetails is undefined                                                                                                                                
+      if ( m = fabLabDetails['fablab'].equipment.find( equip => {
+                 return equip.type === machine && equip.status === 'idle'                                                                             
+               }) !== null) {                                                                                                                        
+                 request.post(m.url + 'api/jobs', {form: {design: './' + design}}, (error, response, body) => {
+                   //check response                                                                                                                      
+                   res.statusCode = 200                                                                                                                   
+                   res.json('OK')                                                                                                                         
+                 })                                                                                                                                       
+               } else {                                                                                                                                   
+                 res.statusCode = 500                                                                                                                     
+                 res.json('KO')                                                                                                                           
+               } 
+ 
+   })
+  }
   // vedere quali sono le macchine connesse
   // se c'è quella specificata ==> request di connessione ottenere token creare un id e realizzare il post
     //aspettare la risposta con l'id del job
     //returns job id machine id fablab id
   // se non c'è ritornare un errore
-  var d = new Date()
-  let machine  = req.query.machine
-  let process  = req.query.process
-  let material = req.query.material
-
-  if (machine === undefined || process === undefined || material === undefined) {
-    res.statusCode = 400
-    res.json('Bad request')
-    //devolver error si se rechaza el trabajo
-  } else {
-    res.statusCode = 200
-    res.json('OK') //devolver un id para el trabajo si se acepta
-  }
 })
 
 apiRouter.get('/quota', function(req, res) {
@@ -542,11 +577,11 @@ app.use('/fablab', apiRouter)
 // Error handler
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
-  res.render('error', {
-    message: err.message,
-    error: {}
-  });
-});
+  res.send({
+        message: err.message,
+        error: err
+  })
+})
 
 //deploy the wrapper server
 app.listen(3000, function () {
