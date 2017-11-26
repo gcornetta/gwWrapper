@@ -54,7 +54,8 @@ let dbKeys = {
    machines  : 'fablab:machines',
    machine   : 'fablab:machine:',
    quota     : 'fablab:configuration:quota',
-   calls     : 'fablab:apicalls'  
+   calls     : 'fablab:apicalls',
+   jobs      : 'fablab:jobs:'  
 }
 
 let rclient = redis.createClient()
@@ -493,55 +494,6 @@ apiRouter.get('/', function (req, res) {
     }
 })
 
-apiRouter.post('/jobs', function (req, res) {
-  let machine  = req.query.machine
-  let process  = req.query.process
-  let material = req.query.material
-  let design 
-
-  if (machine === undefined) {
-    res.statusCode = 400
-    res.json('Bad request')
-    //devolver error si se rechaza el trabajo
-  } else if (machine !== '3D printer' && process === undefined && material === undefined) {
-    res.statusCode = 400
-    res.json('Bad request')
-  } else { 
-    let form = new formidable.IncomingForm()
-    form.uploadDir = './'
-    form.keepExtensions = true
-    form.parse(req)
-
-    form.on('fileBegin', (name, file) => {
-      design = file.path = file.name
-    })
-
-    form.on('end', ()  => {
-      refresh()
-      let m = {} 
-      //check if fabLabDetails is undefined                                                                                                                                
-      if ( m = fabLabDetails['fablab'].equipment.find( equip => {
-                 return equip.type === machine && equip.status === 'idle'                                                                             
-               }) !== null) {                                                                                                                        
-                 request.post(m.url + 'api/jobs', {form: {design: './' + design}}, (error, response, body) => {
-                   //check response                                                                                                                      
-                   res.statusCode = 200                                                                                                                   
-                   res.json('OK')                                                                                                                         
-                 })                                                                                                                                       
-               } else {                                                                                                                                   
-                 res.statusCode = 500                                                                                                                     
-                 res.json('KO')                                                                                                                           
-               } 
- 
-   })
-  }
-  // vedere quali sono le macchine connesse
-  // se c'è quella specificata ==> request di connessione ottenere token creare un id e realizzare il post
-    //aspettare la risposta con l'id del job
-    //returns job id machine id fablab id
-  // se non c'è ritornare un errore
-})
-
 apiRouter.get('/quota', function(req, res) {
   db.dbGet(rclient, dbKeys.id, id => {
     if (id === null) {
@@ -560,15 +512,111 @@ apiRouter.get('/quota', function(req, res) {
     }
   })
 })
+
+apiRouter.post('/jobs', function (req, res) {
+  let machine  = req.query.machine
+  let fabProcess  = req.query.process
+  let material = req.query.material
+  let design 
  
+  if (machine === undefined) {
+    res.statusCode = 400
+    res.json('Bad request')
+    //devolver error si se rechaza el trabajo
+  } else if (machine !== '3D printer' && fabProcess === undefined && material === undefined) {
+    res.statusCode = 400
+    res.json('Bad request')
+  } else { 
+    let form = new formidable.IncomingForm()
+    form.uploadDir = './'
+    form.keepExtensions = true
+    form.parse(req)
+
+    form.on('fileBegin', (name, file) => {
+      design = file.path = file.name
+    })
+
+    form.on('end', ()  => {
+      refresh()
+      let m = {} 
+
+      if ( fabLabDetails.equipment !== undefined) {                                                                                                                                
+        if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
+                   return equip.type === machine //&& equip.status === 'idle'                                                                             
+                 })) !== undefined) {
+                   request.post({url: m.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, (error, response, body) => {
+                     let options = {
+                        url: m.url + 'api/jobs',
+                        headers: {
+                           'Authorization': 'JWT ' + JSON.parse(response.body).token
+                        }
+                     }
+                     //in questa richiesta aggiungere info su utente che sollecita la fab
+                     //mettere l'info nel body della richiesta
+                     request.post(options, {form: {design: './' + design}}, (error, response, body) => {
+                       //check response it is undefined
+                       res.statusCode = 200
+                       //ritornare la risposta con job id machine id fablab id
+                       //creare una entry en la DB 'fablab:jobs:<job_id>' e scrivere la url della macchina
+                       //all quale le é stato assegnato quel job                                                                                                                   
+                       res.json('OK')                                                                                                                         
+                     })
+                   })                                                                                                                                       
+        } else {                                                                                                                                   
+          res.statusCode = 500                                                                                                                     
+          res.json('KO')                                                                                                                           
+        }
+      } else {
+        res.statusCode = 200
+        res.json({code: 3, message: 'Fablab is alive but not ready.', details: 'The fablab object has not been built yet.'})
+      }
+    })
+  }
+})
+
 apiRouter.get('/jobs/status/:id', function (req, res) {
 // returns status
-   res.statusCode = 200
-   res.json('OK')
+   let parts = req.url.split('/')
+   let id = parts.pop() || parts.pop()
+   
+   db.dbGet(rclient, dbKeys.jobs + id, route => {
+      if (route !== null) {
+        //route contains the route
+        request.post({url: route + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) {
+           let options = {
+              url: route + 'api/jobs/' + id,
+              headers: {
+                   'Authorization': 'JWT ' + JSON.parse(response.body).token
+              }
+           }
+           request.get(options, (error, response, body) => {
+             //check response it is undefined
+             res.statusCode = 200
+             //ritornare la risposta con lo stato
+              res.json('OK')                                                                              
+           })
+        }) 
+      } else {
+        res.statusCode = 500
+        res.json('KO')
+      }
+   }) 
 })
 
 apiRouter.delete('/jobs/:id', function (req, res) {
-// return status
+   let parts = req.url.split('/')
+   let id = parts.pop() || parts.pop()
+   
+   db.dbDel(rclient, dbKeys.jobs + id, route => {
+      if (route !== null) {
+       
+
+      } else {
+        res.statusCode = 500                                                                                                                   
+        res.json('KO') 
+      }
+   }) 
+
 })
 
 // Attach the router to the /fablab path
