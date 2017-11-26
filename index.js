@@ -16,6 +16,8 @@ const WebSocket = require('ws')
 const cron = require('node-schedule')
 const request = require('request')
 
+//const hostname = require('os').hostname()
+
 const ws = new WebSocket('ws://localhost:9999')
 
 require('dotenv').config()
@@ -226,7 +228,36 @@ let refresh = function () {
              
                        })
                      })
-              }
+              },
+   details: function (cb) {
+               db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
+                  let jobs = []
+                  if (reply.length !== 0) {
+                    reply.forEach ( (key, index) => {
+                      db.dbGetHash(rclient, dbKeys.machine + key, machine => {
+                         if (machine != null) {
+                           request.post({url: machine.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) {
+                               let options = {
+                                   url: machine.url + 'api/jobs',
+                                   headers: {
+                                     'Authorization': 'JWT ' + JSON.parse(response.body).token
+                                   }
+                               }
+                               request.get(options ,function(error, response, body) {
+                                  jobs.concat(JSON.parse(response.body).jobs)
+                               })
+                           })
+                         }
+                      })
+                      if (index === Object.keys(reply).length -1) {
+                        cb (null, jobs)
+                      }
+                    })
+                  } else {
+                    cb (null, jobs)
+                  }
+               })
+        }
       }, (err, results) => {
            fabLabDetails['fablab'].id = results.id 
            fabLabDetails['fablab'].name = results.name
@@ -239,6 +270,7 @@ let refresh = function () {
            fabLabDetails['fablab'].openingDays = results.opdays
            fabLabDetails['fablab'].equipment = results.equip
            fabLabDetails['fablab'].materials = results.materials
+           fabLabDetails['jobs'].details = results.details
       })
 }
 
@@ -305,7 +337,7 @@ let scheduler = new Scheduler(2);
 
 scheduler.add(10000, function(done){
 client.get(gateway.baseURL, (err, entity) => {
-  let details = ['id', 'name', 'vendor', 'type', 'state']
+  let details = ['id', 'url', 'name', 'vendor', 'type', 'state']
 
   if (err) throw err
   logger.info('@wrapper: Retrieving fab lab status...'); 
@@ -451,11 +483,6 @@ apiRouter.get('/', function (req, res) {
       res.statusCode = 500
       res.json = ({code: 1, message: 'Internal server error. Please, try later.', details: 'Fablab communication error.'})
     }
-})
-
-request.post({url: 'http://piwrapper.local:8888/api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) {
-
-console.log('>>>>>>>>>>>>>< ' + JSON.stringify(JSON.parse(response.body)))
 })
 
 apiRouter.post('/jobs', function (req, res) {
