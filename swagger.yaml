@@ -61,6 +61,12 @@ paths:
       tags:
         - jobs
       parameters:
+        - name: user
+          in: query
+          required: true
+          type: string
+          format: uuid
+          description: Job owner unique identifier
         - name: machine
           in: query
           required: true

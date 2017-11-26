@@ -16,6 +16,7 @@ const WebSocket = require('ws')
 const cron = require('node-schedule')
 const request = require('request')
 const formidable = require('formidable')
+const fs = require('fs')
 
 const ws = new WebSocket('ws://localhost:9999')
 
@@ -539,28 +540,47 @@ apiRouter.post('/jobs', function (req, res) {
     form.on('end', ()  => {
       refresh()
       let m = {} 
-
-      if ( fabLabDetails.equipment !== undefined) {                                                                                                                                
+      if ( fabLabDetails['fablab'].equipment !== undefined) {                                                                                                                                
         if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
                    return equip.type === machine //&& equip.status === 'idle'                                                                             
                  })) !== undefined) {
                    request.post({url: m.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, (error, response, body) => {
-                     let options = {
-                        url: m.url + 'api/jobs',
-                        headers: {
-                           'Authorization': 'JWT ' + JSON.parse(response.body).token
-                        }
-                     }
-                     //in questa richiesta aggiungere info su utente che sollecita la fab
-                     //mettere l'info nel body della richiesta
-                     request.post(options, {form: {design: './' + design}}, (error, response, body) => {
-                       //check response it is undefined
-                       res.statusCode = 200
-                       //ritornare la risposta con job id machine id fablab id
-                       //creare una entry en la DB 'fablab:jobs:<job_id>' e scrivere la url della macchina
-                       //all quale le é stato assegnato quel job                                                                                                                   
-                       res.json('OK')                                                                                                                         
-                     })
+                     
+                     if (response !== undefined) {
+                       let options = {
+                          url: m.url + 'api/jobs',
+                          headers: {
+                             'Authorization': 'JWT ' + JSON.parse(response.body).token
+                          },
+                          formData: {file: fs.createReadStream('./' + design)}
+                       }
+                       //in questa richiesta aggiungere info su utente che sollecita la fab
+                       //mettere l'info nel body della richiesta
+                       request.post(options, (error, response, body) => {
+                         //check response it is undefined
+                         if (JSON.parse(response.statusCode) === 200) {
+                           if (JSON.parse(response.body).jobId !== undefined) {
+                             db.dbSet(rclient, dbKeys.jobs + JSON.parse(response.body).jobId, m.url, reply => {
+                               if (reply === 'OK') {
+                                  res.statusCode = 200
+                                  res.json ({id: fabLabDetails['fablab'].id, mId: m.id, jobId: JSON.parse(response.body).jobId})
+                               } else {
+                                  res.statusCode = 500
+                                  res.json ({code: 6, message: 'Internal server error', details: 'Database error. Cannot write'})
+                               }
+                             })
+                           } else {
+                             //switch di gestione degli errori riconosciuti
+                           }
+                         } else {
+                           res.statusCode = 500
+                           res.json({code: 5, message: 'Internal server error', details: 'Machine unknown error.'})
+                         }
+                       })
+                      } else {
+                        res.statusCode = 500
+                        res.json({code: 4, message: 'Internal server error', details: 'Unknown authorization error.'})
+                      } 
                    })                                                                                                                                       
         } else {                                                                                                                                   
           res.statusCode = 500                                                                                                                     
@@ -591,9 +611,14 @@ apiRouter.get('/jobs/status/:id', function (req, res) {
            }
            request.get(options, (error, response, body) => {
              //check response it is undefined
-             res.statusCode = 200
-             //ritornare la risposta con lo stato
-              res.json('OK')                                                                              
+             if (response === undefined) {
+               res.statusCode = 500
+               res.json({code: 4, message: 'Internal server error.', details: 'Cannot connect to the target machine.'})
+             } else {
+               res.statusCode = 200
+               //ritornare la risposta con lo stato
+               res.json('OK')
+             }                                                                              
            })
         }) 
       } else {
