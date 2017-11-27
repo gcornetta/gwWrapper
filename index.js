@@ -515,83 +515,110 @@ apiRouter.get('/quota', function(req, res) {
 })
 
 apiRouter.post('/jobs', function (req, res) {
+  let user = req.query.user
   let machine  = req.query.machine
   let fabProcess  = req.query.process
   let material = req.query.material
   let design 
- 
-  if (machine === undefined) {
-    res.statusCode = 400
-    res.json('Bad request')
-    //devolver error si se rechaza el trabajo
-  } else if (machine !== '3D printer' && fabProcess === undefined && material === undefined) {
-    res.statusCode = 400
-    res.json('Bad request')
-  } else { 
-    let form = new formidable.IncomingForm()
-    form.uploadDir = './'
-    form.keepExtensions = true
-    form.parse(req)
 
-    form.on('fileBegin', (name, file) => {
-      design = file.path = file.name
-    })
 
-    form.on('end', ()  => {
-      refresh()
-      let m = {} 
-      if ( fabLabDetails['fablab'].equipment !== undefined) {                                                                                                                                
-        if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
-                   return equip.type === machine //&& equip.status === 'idle'                                                                             
-                 })) !== undefined) {
-                   request.post({url: m.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, (error, response, body) => {
+  db.dbGet(rclient, dbKeys.calls, reply => {
+     if (reply === null) {
+       res.statusCode = 500
+       res.json({code: 8, message: 'Internal server error', details: 'Database error. Cannot write.'})
+     } else {
+       reply--
+       if ( reply < 0) {
+         res.statusCode = 400
+         res.json({code: 9, message: 'Bad request.', details: 'API quota consumed.'})
+       } else {
+         db.dbSet(rclient, dbKeys.calls, reply, status => {
+          if (status === 'OK') {
+            if (user === undefined) {
+              res.statusCode = 500
+              res.json('Bad request')
+            } else if (machine === undefined) {
+              res.statusCode = 400
+              res.json('Bad request')
+              //devolver error si se rechaza el trabajo
+            } else if (machine !== '3D printer' && fabProcess === undefined && material === undefined) {
+              res.statusCode = 400
+              res.json('Bad request')
+            } else { 
+              let form = new formidable.IncomingForm()
+              form.uploadDir = './'
+              form.keepExtensions = true
+              form.parse(req)
+
+              form.on('fileBegin', (name, file) => {
+                design = file.path = file.name
+              })
+
+              form.on('end', ()  => {
+                refresh()
+                let m = {} 
+                if ( fabLabDetails['fablab'].equipment !== undefined) {                                                                                                                                
+                  if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
+                         return equip.type === machine //&& equip.status === 'idle'                                                                             
+                       })) !== undefined) {
+                             request.post({url: m.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, (error, response, body) => {
                      
-                     if (response !== undefined) {
-                       let options = {
-                          url: m.url + 'api/jobs',
-                          headers: {
-                             'Authorization': 'JWT ' + JSON.parse(response.body).token
-                          },
-                          formData: {file: fs.createReadStream('./' + design)}
-                       }
-                       //in questa richiesta aggiungere info su utente che sollecita la fab
-                       //mettere l'info nel body della richiesta
-                       request.post(options, (error, response, body) => {
-                         //check response it is undefined
-                         if (JSON.parse(response.statusCode) === 200) {
-                           if (JSON.parse(response.body).jobId !== undefined) {
-                             db.dbSet(rclient, dbKeys.jobs + JSON.parse(response.body).jobId, m.url, reply => {
-                               if (reply === 'OK') {
-                                  res.statusCode = 200
-                                  res.json ({id: fabLabDetails['fablab'].id, mId: m.id, jobId: JSON.parse(response.body).jobId})
+                               if (response !== undefined) {
+                                 let options = {
+                                    url: m.url + 'api/jobs',
+                                    headers: {
+                                       'Authorization': 'JWT ' + JSON.parse(response.body).token
+                                    },
+                                    formData: {
+                                      user: user,
+                                      file: fs.createReadStream('./' + design)
+                                    }
+                                 }
+                                 request.post(options, (error, response, body) => {
+                                   //check response it is undefined
+                                   if (JSON.parse(response.statusCode) === 200) {
+                                     if (JSON.parse(response.body).jobId !== undefined) {
+                                       db.dbSet(rclient, dbKeys.jobs + JSON.parse(response.body).jobId, m.url, reply => {
+                                         if (reply === 'OK') {
+                                           res.statusCode = 200
+                                           res.json ({id: fabLabDetails['fablab'].id, mId: m.id, jobId: JSON.parse(response.body).jobId})
+                                         } else {
+                                           res.statusCode = 500
+                                           res.json ({code: 6, message: 'Internal server error', details: 'Database error. Cannot write'})
+                                         }
+                                       })
+                                     } else {
+                                       res.statusCode = 200
+                                       res.json(JSON.parse(response.body))
+                                     }
+                                   } else {
+                                     res.statusCode = 500
+                                     res.json({code: 5, message: 'Internal server error', details: 'Machine unknown error.'})
+                                   }
+                                 })
                                } else {
-                                  res.statusCode = 500
-                                  res.json ({code: 6, message: 'Internal server error', details: 'Database error. Cannot write'})
-                               }
-                             })
-                           } else {
-                             //switch di gestione degli errori riconosciuti
-                           }
-                         } else {
-                           res.statusCode = 500
-                           res.json({code: 5, message: 'Internal server error', details: 'Machine unknown error.'})
-                         }
-                       })
-                      } else {
-                        res.statusCode = 500
-                        res.json({code: 4, message: 'Internal server error', details: 'Unknown authorization error.'})
-                      } 
-                   })                                                                                                                                       
-        } else {                                                                                                                                   
-          res.statusCode = 500                                                                                                                     
-          res.json('KO')                                                                                                                           
-        }
-      } else {
-        res.statusCode = 200
-        res.json({code: 3, message: 'Fablab is alive but not ready.', details: 'The fablab object has not been built yet.'})
-      }
-    })
-  }
+                                 res.statusCode = 500
+                                 res.json({code: 4, message: 'Internal server error', details: 'Unknown authorization error.'})
+                               } 
+                             })                                                                                                                                       
+                  } else {                                                                                                                                   
+                    res.statusCode = 200                                                                                                                     
+                    res.json({code: 7, message: 'Fablab busy', details: fabLabDetails['fablab'].id})                                                                                                                           
+                  }
+                } else {
+                  res.statusCode = 200
+                  res.json({code: 3, message: 'Fablab is alive but not ready.', details: 'The fablab object has not been built yet.'})
+                }
+              })
+            }
+          } else {
+            res.statusCode = 500
+            res.json({code: 9, message: 'Internal server error.', details: 'Database error. Cannot read.'})
+          }   
+         })
+       }
+     }
+  })
 })
 
 apiRouter.get('/jobs/status/:id', function (req, res) {
@@ -599,49 +626,90 @@ apiRouter.get('/jobs/status/:id', function (req, res) {
    let parts = req.url.split('/')
    let id = parts.pop() || parts.pop()
    
-   db.dbGet(rclient, dbKeys.jobs + id, route => {
-      if (route !== null) {
-        //route contains the route
-        request.post({url: route + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) {
-           let options = {
-              url: route + 'api/jobs/' + id,
-              headers: {
-                   'Authorization': 'JWT ' + JSON.parse(response.body).token
-              }
+   
+   db.dbGet(rclient, dbKeys.calls, reply => {
+     if (reply === null) {
+       res.statusCode = 500
+       res.json({code: 8, message: 'Internal server error', details: 'Database error. Cannot read.'})
+     } else {
+       reply--
+       if (reply < 0) {
+         res.statusCode = 400                                                                                                                  
+         res.json({code: 9, message: 'Bad request.', details: 'API quota consumed.'})                                                          
+       } else {
+         db.dbSet(rclient, dbKeys.calls, reply, status => {
+           if (status === 'OK') {
+             db.dbGet(rclient, dbKeys.jobs + id, route => {
+               if (route !== null) {
+                 //route contains the route
+                 request.post({url: route + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) {
+                   let options = {
+                     url: route + 'api/jobs/' + id,
+                     headers: {
+                      'Authorization': 'JWT ' + JSON.parse(response.body).token
+                     }
+                   }
+                   request.get(options, (error, response, body) => {
+                     //check response it is undefined
+                     if (response === undefined) {
+                       res.statusCode = 500
+                       res.json({code: 4, message: 'Internal server error.', details: 'Cannot connect to the target machine.'})
+                     } else {
+                       res.statusCode = 200
+                       res.json(JSON.parse(response.body).job)
+                     }                                                                              
+                   })
+                 }) 
+               } else {
+                 res.statusCode = 400
+                 res.json({code: 10, message: 'Bad request', details: 'Invalid route. Job not in Data base.'})
+               }
+             })
+           } else {
+             res.statusCode = 500
+             res.json({code: 9, message: 'Internal server error', details: 'Database error. Cannot write.'}) 
            }
-           request.get(options, (error, response, body) => {
-             //check response it is undefined
-             if (response === undefined) {
-               res.statusCode = 500
-               res.json({code: 4, message: 'Internal server error.', details: 'Cannot connect to the target machine.'})
-             } else {
-               res.statusCode = 200
-               //ritornare la risposta con lo stato
-               res.json('OK')
-             }                                                                              
-           })
-        }) 
-      } else {
-        res.statusCode = 500
-        res.json('KO')
-      }
-   }) 
+         })
+       }
+     }
+   })
 })
 
 apiRouter.delete('/jobs/:id', function (req, res) {
    let parts = req.url.split('/')
    let id = parts.pop() || parts.pop()
-   
-   db.dbDel(rclient, dbKeys.jobs + id, route => {
-      if (route !== null) {
-       
 
-      } else {
-        res.statusCode = 500                                                                                                                   
-        res.json('KO') 
-      }
-   }) 
-
+   db.dbGet(rclient, dbKeys.jobs +id, route => {   
+     db.dbDel(rclient, dbKeys.jobs + id, reply => {
+        if (reply === 1) {    
+          if (route !== null) {
+            request.post({url: route + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) { 
+              let options = {
+                url: route + 'api/jobs/' + id,
+                headers: {
+                  'Authorization': 'JWT ' + JSON.parse(response.body).token
+                }
+              }
+              request.del(options, function(error, response, body) {
+                if (response === undefined) {
+                  res.statusCode = 500
+                  res.json({code: 4, message: 'Internal server error.', details: 'Cannot connect to the target machine.'})
+                } else {
+                  res.statusCode = response.statusCode
+                  res.json(JSON.parse(response.body))
+                } 
+              })
+            })
+          } else {
+            res.statusCode = 400                                                                                                                   
+            res.json({code: 10, message: 'Bad request', details: 'Invalid route. Job not in Data base.'}) 
+          }
+        } else {
+          res.statusCode = 500
+          res.json({code: 9, message: 'Internal server error.', details: 'Database eror. Cannot delete.'})
+        }
+     })
+   })
 })
 
 // Attach the router to the /fablab path
