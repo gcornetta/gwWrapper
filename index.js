@@ -18,6 +18,7 @@ const request = require('request')
 const formidable = require('formidable')
 const fs = require('fs')
 
+
 const ws = new WebSocket('ws://localhost:9999')
 
 require('dotenv').config()
@@ -725,7 +726,27 @@ app.use(function(err, req, res, next) {
 })
 
 //deploy the wrapper server
-app.listen(3000, function () {
+/*app.listen(3000, function () {
   logger.info('@wrapper: API wrapper listening on port 3000')
-})
+})*/
+
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+
+io.on('connection', client => {
+   logger.info(`@piwrapper: conected to .....`) 
+   client.on ('deleteJob', function (data) {
+
+   })
+   client.on ('updateJob', function (data) {
+
+   }
+   client.on ('disconnect', function (data) {
+
+   }
+});
+
+server.listen(3000, () => {
+  logger.info('@wrapper: API wrapper listening on port 3000')  
+});
 
