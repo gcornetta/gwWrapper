@@ -541,7 +541,6 @@ apiRouter.post('/jobs', function (req, res) {
             } else if (machine === undefined) {
               res.statusCode = 400
               res.json('Bad request')
-              //devolver error si se rechaza el trabajo
             } else if (machine !== '3D printer' && fabProcess === undefined && material === undefined) {
               res.statusCode = 400
               res.json('Bad request')
@@ -560,7 +559,7 @@ apiRouter.post('/jobs', function (req, res) {
                 let m = {} 
                 if ( fabLabDetails['fablab'].equipment !== undefined) {                                                                                                                                
                   if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
-                         return equip.type === machine //&& equip.status === 'idle'                                                                             
+                         return equip.type === machine && equip.status === 'idle'                                                                             
                        })) !== undefined) {
                              request.post({url: m.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, (error, response, body) => {
                      
