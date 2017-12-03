@@ -559,7 +559,7 @@ apiRouter.post('/jobs', function (req, res) {
                 let m = {} 
                 if ( fabLabDetails['fablab'].equipment !== undefined) {                                                                                                                                
                   if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
-                         return equip.type === machine && equip.status === 'idle'                                                                             
+                         return equip.type === machine && (equip.status === 'idle' || equip.jobsQueued < 25)                                                                             
                        })) !== undefined) {
                              request.post({url: m.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, (error, response, body) => {
                      
@@ -739,10 +739,10 @@ io.on('connection', client => {
    })
    client.on ('updateJob', function (data) {
 
-   }
+   })
    client.on ('disconnect', function (data) {
 
-   }
+   })
 });
 
 server.listen(3000, () => {
