@@ -570,9 +570,9 @@ apiRouter.post('/jobs', function (req, res) {
                                        'Authorization': 'JWT ' + JSON.parse(response.body).token
                                     },
                                     formData: {
-                                      user: user,
                                       file: fs.createReadStream('./' + design)
-                                    }
+                                    },
+                                    qs: req.query
                                  }
                                  request.post(options, (error, response, body) => {
                                    //check response it is undefined
