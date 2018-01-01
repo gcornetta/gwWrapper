@@ -1,4 +1,4 @@
-# Fablab API Specification
+# Fab Lab API Specifications
 swagger: '2.0'
 info:
   title: Fab Lab Gateway API
@@ -16,16 +16,16 @@ produces:
 paths:
   /:
     get:
-      summary: Fab lab information.
+      summary: Fab Lab information.
       description: > 
-        The root endpoint */* returns information about the fablab
+        The root endpoint */* returns information about the Fab Lab
         structure and general information, as well as a snapshot of 
-        the active jobs, machine status and fablab load.
+        the active jobs, machine status and Fab Lab load.
       tags:
         - fablab
       responses:
         200:
-          description: A JSON object with the fablab description.
+          description: A JSON object with the Fab Lab description.
           schema:
             $ref: '#/definitions/fablab'
         500:
@@ -37,12 +37,12 @@ paths:
       summary: Get the Fab lab API call quota
       description: > 
         The */quota* endpoint returns the information about the API call
-        quota available for the fablab.
+        quota available for the Fab Lab.
       tags:
         - fablab
       responses:
         200: 
-          description: A JSON object with the fablab quota.
+          description: A JSON object with the Fab Lab quota.
           schema:
             $ref: '#/definitions/quota'
         500:
@@ -152,7 +152,7 @@ paths:
             $ref: '#/definitions/error'      
 definitions:
   fablab:
-    title: Fablab description object
+    title: Fab Lab description object
     type: object
     properties:
       fablab:
@@ -161,25 +161,25 @@ definitions:
           id:
             type: string
             format: uuid
-            description: Unique fablab identifier assigned by Cloudhub.
+            description: Unique Fab Lab identifier assigned by Cloudhub.
           name:
             type: string
-            description: Fablab name
+            description: Fab Lab name
           web:
             type: string
-            description: URL of the fablab web page.
+            description: URL of the Fab Lab web page.
           capacity:
             type: integer
             minimum: 0
             maximum: 100
-            description: Fablab load indicator. Integer from 0 to 100.
+            description: Fab Lab load indicator. Integer from 0 to 100.
           address:
             $ref: '#/definitions/address'
           coordinates:
             $ref: '#/definitions/coordinates'
           openingDays:
             type: array
-            description: Fab lab opening days.
+            description: Fab Lab opening days.
             items:
               $ref: '#/definitions/openingDays'
           contact:
@@ -336,7 +336,7 @@ definitions:
       charge:
         type: string
         description: The charge of the contact person.
-      emaiL:
+      email:
         type: string
         format: email
         description: The email of the contact person.
@@ -420,7 +420,7 @@ definitions:
         description: Additional information.
   quota:
     type: object
-    title: Fablab quota returned
+    title: Fab Lab quota returned
     description: Response to quota request.
     properties:
       id:
