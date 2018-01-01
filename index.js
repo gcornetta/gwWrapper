@@ -559,7 +559,7 @@ apiRouter.post('/jobs', function (req, res) {
                 let m = {} 
                 if ( fabLabDetails['fablab'].equipment !== undefined) {                                                                                                                                
                   if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
-                         return equip.type === machine && (equip.status === 'idle' || equip.jobsQueued < 25)                                                                             
+                         return equip.type === machine && (equip.state === 'idle' || equip.jobsQueued < 25) //TODO: Equip object doesn't have jobsQueued
                        })) !== undefined) {
                              request.post({url: m.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, (error, response, body) => {
                      
