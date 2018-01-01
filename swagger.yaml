@@ -65,7 +65,6 @@ paths:
           in: query
           required: true
           type: string
-          format: uuid
           description: Job owner unique identifier
         - name: machine
           in: query
@@ -120,7 +119,6 @@ paths:
           required: true
           description: The job unique identifier
           type: string
-          format: uuid
       responses:
         200:
           description: The job status
@@ -172,7 +170,6 @@ definitions:
             description: URL of the fablab web page.
           capacity:
             type: integer
-            format: int32
             minimum: 0
             maximum: 100
             description: Fablab load indicator. Integer from 0 to 100.
@@ -202,11 +199,9 @@ definitions:
         properties:
           running:
             type: integer
-            format: int32
             description: Total number of running jobs.
           queued:
             type: integer
-            format: int32
             description: Total number of queued jobs.
           details:
             type: array
@@ -222,15 +217,16 @@ definitions:
         description: The address that is displayed.
       number:
         type: integer
-        format: int32
         description: Street number.
       street:
         type: string
         description: Street name.
       postcode:
         type: integer
-        format: int32
         description: The postal code.
+      city:
+        type: string
+        description: City or town.
       state: 
         type: string
         description: State or province.
@@ -312,7 +308,6 @@ definitions:
           - busy
       jobsQueued:
         type: integer
-        format: int32
   materials:
     type: object
     description: Material type and quantity in stock.
@@ -328,7 +323,6 @@ definitions:
         description: Available materials for fabrication (do not apply to 3D printer).
       quantity:
         type: integer
-        format: int32
         minimum: 0
         maximum: 100
         description: Percentage of the available stock.
@@ -406,7 +400,6 @@ definitions:
         description: Indicates whether a process is queued on the local or on the global process queue.
       priority:
         type: integer
-        format: int32
         minimum: 1
         maximum: 5
         description: Jobs priority
@@ -436,7 +429,6 @@ definitions:
         description: The Fab lab unique identifier
       quota:
         type: integer
-        format: int32
         minimum: 0
         maximum: 10000
         description: Available number of monthly API calls
@@ -509,7 +501,6 @@ definitions:
     properties:
       code:
         type: integer
-        format: int32
       message:
         type: string
         description: Error message.
