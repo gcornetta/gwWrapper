@@ -18,18 +18,31 @@ const request = require('request')
 const formidable = require('formidable')
 const fs = require('fs')
 
-
-const ws = new WebSocket('ws://192.168.100.135:3333')
-
 require('dotenv').config()
 
-ws.on ('error', (err) => {
-  logger.error(`@wrapper: Websocket error: ${err}.`)
-})
-  
-ws.on ('message', (data) => {
-  logger.info(`@wrapper:  ${data}.`)
-});
+
+reconnect();
+
+function reconnect(){
+    logger.info(`@wrapper: Reconnect ws`);
+    ws = new WebSocket('ws://192.168.100.135:3333');
+
+    ws.on('open', function open(){
+        logger.info(`@wrapper: Websocket opened`);
+    });
+
+    ws.on('close', function close(){
+        setTimeout(reconnect, 5000);
+    });
+
+    ws.on ('error', (err) => {
+        logger.error(`@wrapper: Websocket error: ${err}.`)
+    })
+
+    ws.on ('message', (data) => {
+        logger.info(`@wrapper:  ${data}.`)
+    });
+}
 
 swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
   // Serve the Swagger documents and Swagger UI
