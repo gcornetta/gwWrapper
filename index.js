@@ -64,13 +64,13 @@ let dbKeys = {
    opdays    : 'fablab:configuration:openingdays',
    opday     : 'fablab:openingdays:',
    address   : 'fablab:address:detailed',
-   contact   : 'fablab:contact',   
+   contact   : 'fablab:contact',
    materials : 'fablab:materials:',
    machines  : 'fablab:machines',
    machine   : 'fablab:machine:',
    quota     : 'fablab:configuration:quota',
    calls     : 'fablab:apicalls',
-   jobs      : 'fablab:jobs:'  
+   jobs      : 'fablab:jobs:'
 }
 
 let rclient = redis.createClient()
@@ -79,7 +79,7 @@ rclient.on('error', err => {
   logger.error (`@wrapper: Database error: ${err}`)
 })
 
-let materials = ['wood', 'copper', 'acrylic', 'vinyl', 'mylar', 'cardboard'] 
+let materials = ['wood', 'copper', 'acrylic', 'vinyl', 'mylar', 'cardboard']
 
 let fabLabDetails = {
     fablab: {},
@@ -114,7 +114,7 @@ let exitHandler = function () {
 
 process.on ('SIGINT', () => {
   logger.info ('@wrapper: Detected CTRL+C...');
-  exitHandler() 
+  exitHandler()
 })
 
 process.on('SIGUSR1', () => {
@@ -122,7 +122,7 @@ process.on('SIGUSR1', () => {
   exitHandler()
 })
 
-process.on('SIGUSR2', () => {                                                                                                                  
+process.on('SIGUSR2', () => {
   console.log ('\nDetected SIGUSR2...');
   exitHandler()
 })
@@ -141,25 +141,25 @@ let refresh = function () {
               }
             })
           },
-      name: function (cb) { 
-              db.dbGet(rclient, dbKeys.name, reply => {                                                                                                        
-                if (reply !== null) {                                                                                                                       
-                  cb (null, reply)                                                                                                       
-                }                                                                                                                                           
+      name: function (cb) {
+              db.dbGet(rclient, dbKeys.name, reply => {
+                if (reply !== null) {
+                  cb (null, reply)
+                }
               })
             },
       web: function (cb) {
-             db.dbGet(rclient, dbKeys.web, reply => {                                                                                                        
-               if (reply !== null) {                                                                                                                       
-                 cb (null, reply)                                                                                                       
-               }                                                                                                                                           
+             db.dbGet(rclient, dbKeys.web, reply => {
+               if (reply !== null) {
+                 cb (null, reply)
+               }
              })
            },
       api: function (cb) {
-             db.dbGet(rclient, dbKeys.api, reply => {                                                                                                        
-               if (reply !== null) {                                                                                                                       
-                 cb (null, reply)                                                                                                       
-               }                                                                                                                                           
+             db.dbGet(rclient, dbKeys.api, reply => {
+               if (reply !== null) {
+                 cb (null, reply)
+               }
              })
            },
       address: function (cb) {
@@ -173,7 +173,7 @@ let refresh = function () {
                 db.dbGetHash(rclient, dbKeys.geopos, reply => {
                    if (Object.keys(reply).length !== 0) {
                      cb (null, reply)
-                   }                        
+                   }
                 })
               },
       contact: function (cb) {
@@ -190,11 +190,11 @@ let refresh = function () {
 
                     reply.forEach ( (day, index) => {
                        db.dbGetHash(rclient, dbKeys.opday + day, rep => {
-                         let d = {} 
+                         let d = {}
                          if (Object.keys(rep).length !== 0) {
-                           d.day = day     
-                           d.from = rep.from                                                                                                     
-                           d.to = rep.to                                                                                                         
+                           d.day = day
+                           d.from = rep.from
+                           d.to = rep.to
                            opDays.push(d)
 
                            if (index === reply.length -1) {
@@ -204,7 +204,7 @@ let refresh = function () {
                        })
                      })
 
-                   }                        
+                   }
                 })
               },
       equip: function (cb) {
@@ -240,7 +240,7 @@ let refresh = function () {
                            if (index === materials.length -1) {
                              cb (null, mat)
                            }
-             
+
                        })
                      })
               },
@@ -283,7 +283,7 @@ let refresh = function () {
                })
         }
       }, (err, results) => {
-           fabLabDetails['fablab'].id = results.id 
+           fabLabDetails['fablab'].id = results.id
            fabLabDetails['fablab'].name = results.name
            fabLabDetails['fablab'].web = results.web
            fabLabDetails['fablab'].api= results.api
@@ -311,7 +311,7 @@ let initCalls = function () {
              } else {
                logger.error(`@wrapper: DB error, cannot write.`)
              }
-           }) 
+           })
          }
        })
       }
@@ -330,7 +330,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.set('json spaces', 2)
 
-let client = new Siren() 
+let client = new Siren()
 
 // global object with all the detected machine Ids
 let machinesId = []
@@ -364,14 +364,14 @@ client.get(gateway.baseURL, (err, entity) => {
   let details = ['id', 'url', 'name', 'vendor', 'type', 'state']
 
   if (err) throw err
-  logger.info('@wrapper: Retrieving fab lab status...'); 
+  logger.info('@wrapper: Retrieving fab lab status...');
   entity.links()
     .filter(link => link.title !== undefined && link.title.includes('machine'))
     .map(link => link.href)
     .forEach(link => client.follow(link, (err,  entity) => {
         entity.entities()
              .forEach(link => {
-               let machineId = link.data.properties.id 
+               let machineId = link.data.properties.id
                db.dbUsetAdd(rclient, dbKeys.machines, machineId, reply => {
                  let hash = []
                  if (reply === 1) {
@@ -384,7 +384,7 @@ client.get(gateway.baseURL, (err, entity) => {
                          event   : 'serviceUp'
                        }), (err) => {
                          if (err){
-                            logger.error(`@wrapper ws: ${err}.`)
+                            logger.error(`@wrapperWS: ${err}.`)
                          }
                       })
                      }
@@ -401,34 +401,34 @@ client.get(gateway.baseURL, (err, entity) => {
                          } else {
                            logger.error(`@wrapper: trouble updating DB.`)
                          }
-                       }) 
+                       })
                      }
-                   })                  
+                   })
                  } else {
                    db.dbGetHash(rclient, dbKeys.machine + machineId, reply => {
                       let hash = []
-                      
+
                       if (reply !== null && (reply.state !== link.data.properties.state)) {
                         hash.push('state')
                         hash.push(link.data.properties.state)
                         db.dbSetHash (rclient, dbKeys.machine + machineId, hash, reply => {
-                         logger.info(`@wrapper: State change. Machine ${machineId} is now ${hash[1]}.`) 
+                         logger.info(`@wrapper: State change. Machine ${machineId} is now ${hash[1]}.`)
                          refresh ()
-  
+
                          db.dbGet(rclient, dbKeys.id, reply => {
                            if (reply !== null) {
                              ws.send(JSON.stringify({
-                               id      : reply,                                                                                                      
+                               id      : reply,
                                mId     : machineId,
                                event   : 'machineStateChange',
                                state   : hash[1]
                              }), (err) => {
                                 if (err){
-                                    logger.error(`@wrapper ws: ${err}.`)
+                                    logger.error(`@wrapperWS: ${err}.`)
                                 }
                              })
                            }
-                         })         
+                         })
                        })
                       }
                    })
@@ -454,7 +454,7 @@ scheduler.add(10000, function(done) {
     logger.info('@wrapper: Retrieving fab lab status...');
     let links = entity.links()
       .filter(link => link.title !== undefined && link.title.includes('machine'))
-     
+
      if (links.length !== 0 ) {
         links.map(link => link.href)
          .forEach(link => client.follow(link, (err,  entity) => {
@@ -478,7 +478,7 @@ scheduler.add(10000, function(done) {
                                 event   : 'serviceDown'
                               }), (err) => {
                                 if (err){
-                                    logger.error(`@wrapper ws: ${err}.`)
+                                    logger.error(`@wrapperWS: ${err}.`)
                                 }
                               })
                            }
@@ -491,14 +491,14 @@ scheduler.add(10000, function(done) {
      } else {
         db.dbGet(rclient, dbKeys.id, reply => {
           if (reply !== null) {
-            ws.send(JSON.stringify({                                                                                                
+            ws.send(JSON.stringify({
                       id      : reply,
                       event   : 'fabLabDown'
                     }), (err) => {
                         if (err){
-                            logger.error(`@wrapper ws: ${err}.`)
+                            logger.error(`@wrapperWS: ${err}.`)
                         }
-                    })                                                                                                                       
+                    })
            }
         })
      }
@@ -541,7 +541,7 @@ apiRouter.post('/jobs', function (req, res) {
   let machine  = req.query.machine
   let fabProcess  = req.query.process
   let material = req.query.material
-  let design 
+  let design
 
 
   db.dbGet(rclient, dbKeys.calls, reply => {
@@ -565,7 +565,7 @@ apiRouter.post('/jobs', function (req, res) {
             } else if (machine !== '3D printer' && fabProcess === undefined && material === undefined) {
               res.statusCode = 400
               res.json('Bad request')
-            } else { 
+            } else {
               let form = new formidable.IncomingForm()
               form.uploadDir = './'
               form.keepExtensions = true
@@ -577,13 +577,13 @@ apiRouter.post('/jobs', function (req, res) {
 
               form.on('end', ()  => {
                 refresh()
-                let m = {} 
-                if ( fabLabDetails['fablab'].equipment !== undefined) {                                                                                                                                
+                let m = {}
+                if ( fabLabDetails['fablab'].equipment !== undefined) {
                   if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
                          return equip.type === machine && (equip.state === 'idle' || equip.jobsQueued < 25) //TODO: Equip object doesn't have jobsQueued
                        })) !== undefined) {
                              request.post({url: m.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, (error, response, body) => {
-                     
+
                                if (response !== undefined) {
                                  let options = {
                                     url: m.url + 'api/jobs',
@@ -620,11 +620,11 @@ apiRouter.post('/jobs', function (req, res) {
                                } else {
                                  res.statusCode = 500
                                  res.json({code: 4, message: 'Internal server error', details: 'Unknown authorization error.'})
-                               } 
-                             })                                                                                                                                       
-                  } else {                                                                                                                                   
-                    res.statusCode = 200                                                                                                                     
-                    res.json({code: 7, message: 'Fablab busy', details: fabLabDetails['fablab'].id})                                                                                                                           
+                               }
+                             })
+                  } else {
+                    res.statusCode = 200
+                    res.json({code: 7, message: 'Fablab busy', details: fabLabDetails['fablab'].id})
                   }
                 } else {
                   res.statusCode = 200
@@ -635,7 +635,7 @@ apiRouter.post('/jobs', function (req, res) {
           } else {
             res.statusCode = 500
             res.json({code: 9, message: 'Internal server error.', details: 'Database error. Cannot read.'})
-          }   
+          }
          })
        }
      }
@@ -646,8 +646,8 @@ apiRouter.get('/jobs/status/:id', function (req, res) {
 // returns status
    let parts = req.url.split('/')
    let id = parts.pop() || parts.pop()
-   
-   
+
+
    db.dbGet(rclient, dbKeys.calls, reply => {
      if (reply === null) {
        res.statusCode = 500
@@ -655,8 +655,8 @@ apiRouter.get('/jobs/status/:id', function (req, res) {
      } else {
        reply--
        if (reply < 0) {
-         res.statusCode = 400                                                                                                                  
-         res.json({code: 9, message: 'Bad request.', details: 'API quota consumed.'})                                                          
+         res.statusCode = 400
+         res.json({code: 9, message: 'Bad request.', details: 'API quota consumed.'})
        } else {
          db.dbSet(rclient, dbKeys.calls, reply, status => {
            if (status === 'OK') {
@@ -678,9 +678,9 @@ apiRouter.get('/jobs/status/:id', function (req, res) {
                      } else {
                        res.statusCode = 200
                        res.json(JSON.parse(response.body).job)
-                     }                                                                              
+                     }
                    })
-                 }) 
+                 })
                } else {
                  res.statusCode = 400
                  res.json({code: 10, message: 'Bad request', details: 'Invalid route. Job not in Data base.'})
@@ -688,7 +688,7 @@ apiRouter.get('/jobs/status/:id', function (req, res) {
              })
            } else {
              res.statusCode = 500
-             res.json({code: 9, message: 'Internal server error', details: 'Database error. Cannot write.'}) 
+             res.json({code: 9, message: 'Internal server error', details: 'Database error. Cannot write.'})
            }
          })
        }
@@ -700,11 +700,11 @@ apiRouter.delete('/jobs/:id', function (req, res) {
    let parts = req.url.split('/')
    let id = parts.pop() || parts.pop()
 
-   db.dbGet(rclient, dbKeys.jobs +id, route => {   
+   db.dbGet(rclient, dbKeys.jobs +id, route => {
      db.dbDel(rclient, dbKeys.jobs + id, reply => {
-        if (reply === 1) {    
+        if (reply === 1) {
           if (route !== null) {
-            request.post({url: route + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) { 
+            request.post({url: route + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) {
               let options = {
                 url: route + 'api/jobs/' + id,
                 headers: {
@@ -718,12 +718,12 @@ apiRouter.delete('/jobs/:id', function (req, res) {
                 } else {
                   res.statusCode = response.statusCode
                   res.json(JSON.parse(response.body))
-                } 
+                }
               })
             })
           } else {
-            res.statusCode = 400                                                                                                                   
-            res.json({code: 10, message: 'Bad request', details: 'Invalid route. Job not in Data base.'}) 
+            res.statusCode = 400
+            res.json({code: 10, message: 'Bad request', details: 'Invalid route. Job not in Data base.'})
           }
         } else {
           res.statusCode = 500
@@ -754,14 +754,14 @@ const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 
 io.on('connection', client => {
-   logger.info(`@piwrapper: conected to .....`) 
+   logger.info(`@piwrapper: conected to .....`)
    client.on ('deleteJob', function (data) {
         ws.send(JSON.stringify({
             jobId   : data,
             event   : 'deleteJob'
         }), (err) => {
             if (err){
-                logger.error(`@wrapper ws: ${err}.`)
+                logger.error(`@wrapperWS: ${err}.`)
             }
         })
    })
@@ -771,7 +771,7 @@ io.on('connection', client => {
             event   : 'updateJob'
         }), (err) => {
             if (err){
-                logger.error(`@wrapper ws: ${err}.`)
+                logger.error(`@wrapperWS: ${err}.`)
             }
         })
    })
