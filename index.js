@@ -19,7 +19,7 @@ const formidable = require('formidable')
 const fs = require('fs')
 
 
-const ws = new WebSocket('ws://localhost:9999')
+const ws = new WebSocket('ws://192.168.100.135:3333')
 
 require('dotenv').config()
 
@@ -370,7 +370,9 @@ client.get(gateway.baseURL, (err, entity) => {
                          mId     : machineId,
                          event   : 'serviceUp'
                        }), (err) => {
-                         logger.error(`@wrapper: ${err}.`)
+                         if (err){
+                            logger.error(`@wrapper ws: ${err}.`)
+                         }
                       })
                      }
                    })
@@ -408,7 +410,9 @@ client.get(gateway.baseURL, (err, entity) => {
                                event   : 'machineStateChange',
                                state   : hash[1]
                              }), (err) => {
-                               logger.error(`@wrapper: ${err}.`)
+                                if (err){
+                                    logger.error(`@wrapper ws: ${err}.`)
+                                }
                              })
                            }
                          })         
@@ -460,8 +464,10 @@ scheduler.add(10000, function(done) {
                                 id      : reply,
                                 event   : 'serviceDown'
                               }), (err) => {
-                                logger.error(`@wrapper: ${err}.`)
-                              })                            
+                                if (err){
+                                    logger.error(`@wrapper ws: ${err}.`)
+                                }
+                              })
                            }
                         })
                     }
@@ -476,7 +482,9 @@ scheduler.add(10000, function(done) {
                       id      : reply,
                       event   : 'fabLabDown'
                     }), (err) => {
-                         logger.error(`@wrapper: ${err}.`)
+                        if (err){
+                            logger.error(`@wrapper ws: ${err}.`)
+                        }
                     })                                                                                                                       
            }
         })
@@ -735,10 +743,24 @@ const io = require('socket.io')(server);
 io.on('connection', client => {
    logger.info(`@piwrapper: conected to .....`) 
    client.on ('deleteJob', function (data) {
-
+        ws.send(JSON.stringify({
+            jobId   : data,
+            event   : 'deleteJob'
+        }), (err) => {
+            if (err){
+                logger.error(`@wrapper ws: ${err}.`)
+            }
+        })
    })
    client.on ('updateJob', function (data) {
-
+        ws.send(JSON.stringify({
+            job   : data,
+            event   : 'updateJob'
+        }), (err) => {
+            if (err){
+                logger.error(`@wrapper ws: ${err}.`)
+            }
+        })
    })
    client.on ('disconnect', function (data) {
 
