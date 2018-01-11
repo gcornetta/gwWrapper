@@ -558,13 +558,10 @@ apiRouter.post('/jobs', function (req, res) {
           if (status === 'OK') {
             if (user === undefined) {
               res.statusCode = 500
-              res.json('Bad request')
+              res.json({code: 11, message: 'Bad request', details: 'Undefined user'})
             } else if (machine === undefined) {
               res.statusCode = 400
-              res.json('Bad request')
-            } else if (machine !== '3D printer' && fabProcess === undefined && material === undefined) {
-              res.statusCode = 400
-              res.json('Bad request')
+              res.json({code: 12, message: 'Bad request', details: 'Undefined machine'})
             } else {
               let form = new formidable.IncomingForm()
               form.uploadDir = './'
