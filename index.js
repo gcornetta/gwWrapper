@@ -561,7 +561,7 @@ apiRouter.post('/jobs', function (req, res) {
               res.json({code: 11, message: 'Bad request', details: 'Undefined user'})
             } else if (machine === undefined) {
               res.statusCode = 400
-              res.json({code: 10, message: 'Bad request', details: 'Undefined machine'})
+              res.json({code: 12, message: 'Bad request', details: 'Undefined machine'})
             } else {
               let form = new formidable.IncomingForm()
               form.uploadDir = './'
