@@ -160,11 +160,11 @@ definitions:
         properties:
           id:
             type: string
+            description: Fab Lab unique identifier (uuid).
             format: uuid
-            description: Unique Fab Lab identifier assigned by Cloudhub.
           name:
             type: string
-            description: Fab Lab name
+            description: Fab Lab name.
           web:
             type: string
             description: URL of the Fab Lab web page.
