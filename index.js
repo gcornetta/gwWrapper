@@ -69,8 +69,7 @@ let dbKeys = {
    machines  : 'fablab:machines',
    machine   : 'fablab:machine:',
    quota     : 'fablab:configuration:quota',
-   calls     : 'fablab:apicalls',
-   jobs      : 'fablab:jobs:'
+   calls     : 'fablab:apicalls'
 }
 
 let rclient = redis.createClient()
@@ -407,13 +406,13 @@ client.get(gateway.baseURL, (err, entity) => {
                  } else {
                    db.dbGetHash(rclient, dbKeys.machine + machineId, reply => {
                       let hash = []
-
+                      refresh ()
                       if (reply !== null && (reply.state !== link.data.properties.state)) {
                         hash.push('state')
                         hash.push(link.data.properties.state)
                         db.dbSetHash (rclient, dbKeys.machine + machineId, hash, reply => {
                          logger.info(`@wrapper: State change. Machine ${machineId} is now ${hash[1]}.`)
-                         refresh ()
+                         //refresh ()
 
                          db.dbGet(rclient, dbKeys.id, reply => {
                            if (reply !== null) {
