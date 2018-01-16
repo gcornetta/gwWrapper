@@ -57,6 +57,7 @@ const gateway = {
 
 let dbKeys = {
    id        : 'fablab:configuration:id',
+   token     : 'fablab:configuration:idToken',
    name      : 'fablab:configuration:name',
    web       : 'fablab:configuration:web',
    api       : 'fablab:configuration:api',
@@ -69,7 +70,8 @@ let dbKeys = {
    machines  : 'fablab:machines',
    machine   : 'fablab:machine:',
    quota     : 'fablab:configuration:quota',
-   calls     : 'fablab:apicalls'
+   calls     : 'fablab:apicalls',
+   jobs      : 'fablab:jobs' // hash con trabajos usuarios y estado
 }
 
 let rclient = redis.createClient()
@@ -375,20 +377,28 @@ client.get(gateway.baseURL, (err, entity) => {
                  let hash = []
                  if (reply === 1) {
                    machinesId.push(machineId)
-                   db.dbGet(rclient, dbKeys.id, reply => {
-                     if (reply !== null) {
-                       ws.send(JSON.stringify({
-                         id      : reply,
-                         mId     : machineId,
-                         event   : 'serviceUp'
-                       }), (err) => {
-                         if (err){
-                            logger.error(`@wrapperWS: ${err}.`)
+                   db.dbGet(rclient, dbKeys.id, id => {
+                     if (id !== null) {
+                       db.dbGet(rclient, dbKeys.token, token => {
+                         if (token !== null) {
+                           ws.send(JSON.stringify({
+                             id      : id,
+                             token   : token,
+                             mId     : machineId,
+                             event   : 'serviceUp'
+                           }), (err) => {
+                             if (err){
+                               logger.error(`@wrapperWS: ${err}.`)
+                             }
+                           })
+                         } else {
+                            logger.error(`@wrapperWS: db error, cannot retrieve id token.`)
                          }
-                      })
+                        })
+                     } else {
+                        logger.error(`@wrapperWS: db error, cannot retrieve Fab Lab id.`)
                      }
                    })
-
                    details.forEach ( (key, index) => {
                      hash.push(key)
                      hash.push(link.data.properties[key])
@@ -412,22 +422,30 @@ client.get(gateway.baseURL, (err, entity) => {
                         hash.push(link.data.properties.state)
                         db.dbSetHash (rclient, dbKeys.machine + machineId, hash, reply => {
                          logger.info(`@wrapper: State change. Machine ${machineId} is now ${hash[1]}.`)
-                         //refresh ()
-
-                         db.dbGet(rclient, dbKeys.id, reply => {
-                           if (reply !== null) {
-                             ws.send(JSON.stringify({
-                               id      : reply,
-                               mId     : machineId,
-                               event   : 'machineStateChange',
-                               state   : hash[1]
-                             }), (err) => {
-                                if (err){
-                                    logger.error(`@wrapperWS: ${err}.`)
-                                }
-                             })
-                           }
-                         })
+                         //refresh ()                                                                                  
+                         db.dbGet(rclient, dbKeys.id, id => {                                                                                          
+                           if (id !== null) {                                                                                                          
+                             db.dbGet(rclient, dbKeys.token, token => {                                                                                
+                               if (token !== null) {                                                                                                   
+                                 ws.send(JSON.stringify({                                                                                              
+                                   id      : id,                                                                                                       
+                                   token   : token,                                                                                                    
+                                   mId     : machineId,                                                                                                
+                                   event   : 'machineStateChange',
+                                   state   : hash[1]                                                                                               
+                                 }), (err) => {                                                                                                        
+                                   if (err){                                                                                                           
+                                     logger.error(`@wrapperWS: ${err}.`)                                                                               
+                                   }                                                                                                                   
+                                 })                                                                                                                    
+                               } else {                                                                                                                
+                                  logger.error(`@wrapperWS: db error, cannot retrieve id token.`)                                                      
+                               }                                                                                                                       
+                              })                                                                                                                       
+                           } else {                                                                                                                    
+                              logger.error(`@wrapperWS: db error, cannot retrieve Fab Lab id.`)                                                        
+                           }                                                                                                                           
+                          })
                        })
                       }
                    })
@@ -464,41 +482,59 @@ scheduler.add(10000, function(done) {
                   services.push(link.data.properties.id)
               })
               if (index === links.length) {
-                db.dbGet(rclient, dbKeys.id, reply => {
-                  if (reply !== null) {
-                    if (machinesId.length !== 0) {
-                      machinesId
-                        .diff(services)
-                        .forEach( service => {
-                           if (!services.includes(service)) {
-                              //remove it from machinesId
-                              ws.send(JSON.stringify({
-                                id      : reply,
-                                event   : 'serviceDown'
-                              }), (err) => {
-                                if (err){
-                                    logger.error(`@wrapperWS: ${err}.`)
-                                }
-                              })
-                           }
-                        })
-                    }
+                db.dbGet(rclient, dbKeys.id, id => {
+                  if (id !== null) {
+                    db.dbGet(rclient, dbKeys.token, token => {
+                      if (token !== null) {
+                        if (machinesId.length !== 0) {
+                          machinesId
+                            .diff(services)
+                            .forEach( service => {
+                               if (!services.includes(service)) {
+                                  //remove it from machinesId
+                                  ws.send(JSON.stringify({
+                                    id      : id,
+                                    token   : token,
+                                    event   : 'serviceDown'
+                                  }), (err) => {
+                                    if (err){
+                                      logger.error(`@wrapperWS: ${err}.`)
+                                    }
+                                  })
+                               }
+                            })
+                        }
+                      } else {
+                        logger.error(`@wrapperWS: db error cannot retrieve Fab Lab id token.`)
+                      }
+                    })
+                  } else {
+                    logger.error(`@wrapperWS: db error cannot retrieve machine id.`)
                   }
                 })
               }
           }))
      } else {
-        db.dbGet(rclient, dbKeys.id, reply => {
-          if (reply !== null) {
-            ws.send(JSON.stringify({
-                      id      : reply,
+        db.dbGet(rclient, dbKeys.id, id => {
+          if (id !== null) {
+            db.dbGet(rclient, dbKeys.token, token => {
+              if (token !== null) {
+                 ws.send(JSON.stringify({
+                      id      : id,
+                      token   : token,
                       event   : 'fabLabDown'
                     }), (err) => {
                         if (err){
                             logger.error(`@wrapperWS: ${err}.`)
                         }
                     })
-           }
+              } else {
+                logger.error(`@wrapperWS: db error cannot retrieve id token.`)
+              }                
+            })
+          } else {
+            logger.error(`@wrapperWS: db error cannot retrieve Fab Lab id.`)
+          }
         })
      }
    })
