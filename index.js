@@ -637,7 +637,7 @@ apiRouter.post('/jobs', function (req, res) {
                                            res.json ({id: fabLabDetails['fablab'].id, mId: m.id, jobId: JSON.parse(response.body).jobId})
                                          } else {
                                            res.statusCode = 500
-                                           res.json ({code: 6, message: 'Internal server error', details: 'Database error. Cannot write'})
+                                           res.json ({code: 8, message: 'Internal server error', details: 'Database error. Cannot write'})
                                          }
                                        })
                                      } else {
@@ -666,7 +666,7 @@ apiRouter.post('/jobs', function (req, res) {
             }
           } else {
             res.statusCode = 500
-            res.json({code: 9, message: 'Internal server error.', details: 'Database error. Cannot read.'})
+            res.json({code: 6, message: 'Internal server error.', details: 'Database error. Cannot read.'})
           }
          })
        }
@@ -683,7 +683,7 @@ apiRouter.get('/jobs/status/:id', function (req, res) {
    db.dbGet(rclient, dbKeys.calls, reply => {
      if (reply === null) {
        res.statusCode = 500
-       res.json({code: 8, message: 'Internal server error', details: 'Database error. Cannot read.'})
+       res.json({code: 6, message: 'Internal server error', details: 'Database error. Cannot read.'})
      } else {
        reply--
        if (reply < 0) {
@@ -706,7 +706,7 @@ apiRouter.get('/jobs/status/:id', function (req, res) {
                      //check response it is undefined
                      if (response === undefined) {
                        res.statusCode = 500
-                       res.json({code: 4, message: 'Internal server error.', details: 'Cannot connect to the target machine.'})
+                       res.json({code: 10, message: 'Internal server error.', details: 'Cannot connect to the target machine.'})
                      } else {
                        res.statusCode = 200
                        res.json(JSON.parse(response.body).job)
@@ -715,12 +715,12 @@ apiRouter.get('/jobs/status/:id', function (req, res) {
                  })
                } else {
                  res.statusCode = 400
-                 res.json({code: 10, message: 'Bad request', details: 'Invalid route. Job not in Data base.'})
+                 res.json({code: 13, message: 'Bad request', details: 'Invalid route. Job not in Data base.'})
                }
              })
            } else {
              res.statusCode = 500
-             res.json({code: 9, message: 'Internal server error', details: 'Database error. Cannot write.'})
+             res.json({code: 8, message: 'Internal server error', details: 'Database error. Cannot write.'})
            }
          })
        }
@@ -746,7 +746,7 @@ apiRouter.delete('/jobs/:id', function (req, res) {
               request.del(options, function(error, response, body) {
                 if (response === undefined) {
                   res.statusCode = 500
-                  res.json({code: 4, message: 'Internal server error.', details: 'Cannot connect to the target machine.'})
+                  res.json({code: 10, message: 'Internal server error.', details: 'Cannot connect to the target machine.'})
                 } else {
                   res.statusCode = response.statusCode
                   res.json(JSON.parse(response.body))
@@ -755,11 +755,11 @@ apiRouter.delete('/jobs/:id', function (req, res) {
             })
           } else {
             res.statusCode = 400
-            res.json({code: 10, message: 'Bad request', details: 'Invalid route. Job not in Data base.'})
+            res.json({code: 13, message: 'Bad request', details: 'Invalid route. Job not in Data base.'})
           }
         } else {
           res.statusCode = 500
-          res.json({code: 9, message: 'Internal server error.', details: 'Database eror. Cannot delete.'})
+          res.json({code: 14, message: 'Internal server error.', details: 'Database eror. Cannot delete.'})
         }
      })
    })
