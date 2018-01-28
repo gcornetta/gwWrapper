@@ -87,12 +87,17 @@ let fabLabDetails = {
     jobs: {}
 }
 
+
 //clean up db before exiting
 
 process.stdin.resume() //so the program will not close instantly
 
 
 let exitHandler = function () {
+  if (cp !== null) {
+    logger.info('@wrapper: Terminating zetta server...')
+    cp.kill('SIGTERM')
+  }
   db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
     if (reply.length > 0) {
        reply.forEach ( (key, index) => {
