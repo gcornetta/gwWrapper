@@ -577,6 +577,7 @@ apiRouter.post('/jobs', function (req, res) {
   let fabProcess  = req.query.process
   let material = req.query.material
   let design
+  let auxFile
 
 
   db.dbGet(rclient, dbKeys.calls, reply => {
@@ -604,7 +605,11 @@ apiRouter.post('/jobs', function (req, res) {
               form.parse(req)
 
               form.on('fileBegin', (name, file) => {
-                design = file.path = file.name
+                if (name === "file"){
+                    design = file.path = file.name
+                }else if (name === "auxFile"){
+                    auxFile = file.path = file.name
+                }
               })
 
               form.on('end', ()  => {
@@ -614,17 +619,18 @@ apiRouter.post('/jobs', function (req, res) {
                   if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
                          return equip.type === machine && (equip.state === 'idle' || equip.jobsQueued < 25) //TODO: Equip object doesn't have jobsQueued
                        })) !== undefined) {
+                             var form = {file: fs.createReadStream('./' + design)}
+                             if (auxFile){
+                                form.auxFile = fs.createReadStream('./' + auxFile);
+                             }
                              request.post({url: m.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, (error, response, body) => {
-
                                if (response !== undefined) {
                                  let options = {
                                     url: m.url + 'api/jobs',
                                     headers: {
                                        'Authorization': 'JWT ' + JSON.parse(response.body).token
                                     },
-                                    formData: {
-                                      file: fs.createReadStream('./' + design)
-                                    },
+                                    formData: form,
                                     qs: req.query
                                  }
                                  request.post(options, (error, response, body) => {
