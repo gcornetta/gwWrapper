@@ -94,9 +94,9 @@ process.stdin.resume() //so the program will not close instantly
 
 
 let exitHandler = function () {
-  if (cp !== null) {
+  if (child !== null) {
     logger.info('@wrapper: Terminating zetta server...')
-    cp.kill('SIGTERM')
+    child.kill('SIGTERM')
   }
   db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
     if (reply.length > 0) {
