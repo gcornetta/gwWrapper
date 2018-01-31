@@ -5,7 +5,7 @@ const redis = require('redis')
 const randomstring = require('randomstring')
 const Scheduler = require('nschedule');
 const Siren = require('siren-client')
-const cp = require('child_process')
+const pm2 = require('pm2') 
 const logger = require('./logger/winston')
 const async = require('async')
 const db = require('./db/db')
@@ -94,10 +94,19 @@ process.stdin.resume() //so the program will not close instantly
 
 
 let exitHandler = function () {
-  if (child !== null) {
-    logger.info('@wrapper: Terminating zetta server...')
-    child.kill('SIGTERM')
-  }
+  pm2.list ((err, processes) => {
+    if (err) {
+      logger.error(`${err.toString().toLowerCase()}.`)
+    } else {
+      logger.info('@wrapper: Terminating zetta server...')
+      for (var i=0; i < processes.length; i++) {
+         if (processes[i].name === './gateway/zetta.js') {
+           console.log('>>>>>>>>>>>')
+         }
+      }
+    }
+  })
+
   db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
     if (reply.length > 0) {
        reply.forEach ( (key, index) => {
@@ -325,7 +334,25 @@ let initCalls = function () {
 }
 
 let app = express()
-let child = cp.fork('./gateway/server.js')
+
+pm2.connect(err => {
+  if (err) {
+    logger.error(`${err.toString().toLowerCase()}.`)
+    process.exit(2);
+  }
+  
+  pm2.start({
+    script    : './gateway/zetta.js',         
+    max_memory_restart : '100M'  
+  }, (err, app) => {
+       pm2.disconnect()
+       if (err) {                                                                                          
+         logger.error(`${err.toString().toLowerCase()}.`)
+      }
+  })
+})
+
+
 
 
 // create the express router for APIs

@@ -17,6 +17,7 @@
     "formidable": "^1.1.1",
     "node-schedule": "^1.2.5",
     "nschedule": "^0.4.0",
+    "pm2": "^2.9.3",
     "randomstring": "^1.1.5",
     "redis": "^2.8.0",
     "request": "^2.83.0",
