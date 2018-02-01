@@ -25,7 +25,7 @@ reconnect();
 
 function reconnect(){
     logger.info(`@wrapper: Reconnect ws`);
-    ws = new WebSocket('ws://192.168.100.135:3333');
+    ws = new WebSocket('ws://10.80.1.219:3333');
 
     ws.on('open', function open(){
         logger.info(`@wrapper: Websocket opened`);
@@ -94,38 +94,45 @@ process.stdin.resume() //so the program will not close instantly
 
 
 let exitHandler = function () {
-  db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
-    if (reply.length > 0) {
-       reply.forEach ( (key, index) => {
-         db.dbDel(rclient, dbKeys.machine + key, op => {
-           //log op
-           if (index === reply.length -1) {
-             db.dbDel(rclient, dbKeys.machines, op => {
-               logger.info ('@wrapper: Database deleted...exiting.')
-               process.exit (0)
-             })
-           }
-         })
-       })
-     } else {
-       logger.info ('@wrapper: Nothing to delete...exiting.')
-       process.exit (0)
-     }
-  })
+  pm2.connect ( err => {
+    if (err) {
+      self.log(`${err.toString().toLowerCase()}.`)                                                                                      
+      process.exit(2)  
+    } else {
+      pm2.sendSignalToProcessName('SIGTERM', 'zetta', (err, result) =>{
+        if (err) {
+          logger.error(`${err.toString().toLowerCase()}.`) 
+        } else {
+          logger.info ('@wrapper: Gracefully terminating child processes')
+        }
+        pm2.disconnect()
+      })
+      db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
+        if (reply.length > 0) {
+          reply.forEach ( (key, index) => {
+            db.dbDel(rclient, dbKeys.machine + key, op => {
+              //log op
+              if (index === reply.length -1) {
+                db.dbDel(rclient, dbKeys.machines, op => {
+                  logger.info ('@wrapper: Database deleted...exiting.')
+                  rclient.quit()
+                  process.exit (0)
+                })
+              }
+            })
+          })
+        } else {
+          logger.info ('@wrapper: Nothing to delete...exiting.')
+          rclient.quit()
+          process.exit (0)
+        }
+      })
+    }
+ })
 }
 
 process.on ('SIGINT', () => {
-  logger.info ('@wrapper: Detected CTRL+C or pm2.stop...')
-  exitHandler()
-})
-
-process.on('SIGUSR1', () => {
-  logger.info ('@wrapper: Detected SIGUSR1...')
-  exitHandler()
-})
-
-process.on('SIGUSR2', () => {
-  logger.info ('@wrapper: Detected SIGUSR2...')
+  logger.info ('@wrapper: Detected SIGINT')
   exitHandler()
 })
 
