@@ -94,19 +94,6 @@ process.stdin.resume() //so the program will not close instantly
 
 
 let exitHandler = function () {
-  pm2.list ((err, processes) => {
-    if (err) {
-      logger.error(`${err.toString().toLowerCase()}.`)
-    } else {
-      logger.info('@wrapper: Terminating zetta server...')
-      for (var i=0; i < processes.length; i++) {
-         if (processes[i].name === './gateway/zetta.js') {
-           console.log('>>>>>>>>>>>')
-         }
-      }
-    }
-  })
-
   db.dbGetUsetAll(rclient, dbKeys.machines, reply => {
     if (reply.length > 0) {
        reply.forEach ( (key, index) => {
@@ -128,17 +115,22 @@ let exitHandler = function () {
 }
 
 process.on ('SIGINT', () => {
-  logger.info ('@wrapper: Detected CTRL+C...');
+  logger.info ('@wrapper: Detected CTRL+C or pm2.stop...')
   exitHandler()
 })
 
 process.on('SIGUSR1', () => {
-  console.log ('\nDetected SIGUSR1...');
+  logger.info ('@wrapper: Detected SIGUSR1...')
   exitHandler()
 })
 
 process.on('SIGUSR2', () => {
-  console.log ('\nDetected SIGUSR2...');
+  logger.info ('@wrapper: Detected SIGUSR2...')
+  exitHandler()
+})
+
+process.on('SIGTERM', () => {
+  logger.info ('@wrapper: Detected SIGTERM...')
   exitHandler()
 })
 
