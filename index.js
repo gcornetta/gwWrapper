@@ -670,32 +670,60 @@ apiRouter.post('/jobs', function (req, res) {
                                      if (JSON.parse(response.body).jobId !== undefined) {
                                        db.dbSet(rclient, dbKeys.jobs + JSON.parse(response.body).jobId, m.url, reply => {
                                          if (reply === 'OK') {
+                                           fs.unlink(design, function(err) {if (err) {logger.error(err)}});
+                                           if (auxFile){
+                                            fs.unlink(auxFile, function(err) {if (err) {logger.error(err)}});
+                                           }
                                            res.statusCode = 200
                                            res.json ({id: fabLabDetails['fablab'].id, mId: m.id, jobId: JSON.parse(response.body).jobId})
                                          } else {
+                                           fs.unlink(design, function(err) {if (err) {logger.error(err)}});
+                                           if (auxFile){
+                                            fs.unlink(auxFile, function(err) {if (err) {logger.error(err)}});
+                                           }
                                            res.statusCode = 500
                                            res.json ({code: 8, message: 'Internal server error', details: 'Database error. Cannot write'})
                                          }
                                        })
                                      } else {
+                                       fs.unlink(design, function(err) {if (err) {logger.error(err)}});
+                                       if (auxFile){
+                                           fs.unlink(auxFile, function(err) {if (err) {logger.error(err)}});
+                                       }
                                        res.statusCode = 200
                                        res.json(JSON.parse(response.body))
                                      }
                                    } else {
+                                     fs.unlink(design, function(err) {if (err) {logger.error(err)}});
+                                     if (auxFile){
+                                        fs.unlink(auxFile, function(err) {if (err) {logger.error(err)}});
+                                     }
                                      res.statusCode = 500
                                      res.json({code: 5, message: 'Internal server error', details: 'Machine unknown error.'})
                                    }
                                  })
                                } else {
+                                 fs.unlink(design, function(err) {if (err) {logger.error(err)}});
+                                 if (auxFile){
+                                    fs.unlink(auxFile, function(err) {if (err) {logger.error(err)}});
+                                 }
                                  res.statusCode = 500
                                  res.json({code: 4, message: 'Internal server error', details: 'Unknown authorization error.'})
                                }
                              })
                   } else {
+                    fs.unlink(design, function(err) {if (err) {logger.error(err)}});
+                    if (auxFile){
+                        fs.unlink(auxFile, function(err) {if (err) {logger.error(err)}});
+                    }
                     res.statusCode = 200
                     res.json({code: 7, message: 'Fablab busy', details: fabLabDetails['fablab'].id})
                   }
                 } else {
+                  fs.unlink(design, function(err) {if (err) {logger.error(err)}});
+                  if (auxFile){
+                    fs.unlink(auxFile, function(err) {if (err) {logger.error(err)}});
+                  }
                   res.statusCode = 200
                   res.json({code: 3, message: 'Fablab is alive but not ready.', details: 'The fablab object has not been built yet.'})
                 }
