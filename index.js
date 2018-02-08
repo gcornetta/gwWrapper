@@ -660,7 +660,7 @@ apiRouter.post('/jobs', function (req, res) {
                 let m = {}
                 if ( fabLabDetails['fablab'].equipment !== undefined) {
                   if ( (m = fabLabDetails['fablab'].equipment.find( equip => {
-                         return equip.type === machine && (equip.state === 'idle' || equip.jobsQueued < 25) //TODO: Equip object doesn't have jobsQueued
+                         return equip.type === machine //&& (equip.state === 'idle' || equip.jobsQueued < 25) //TODO: Equip object doesn't have jobsQueued
                        })) !== undefined) {
                              var form = {file: fs.createReadStream('./' + design)}
                              if (auxFile){
