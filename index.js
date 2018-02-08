@@ -271,16 +271,18 @@ let refresh = function () {
                            m.type = machine.type
                            m.vendor = machine.vendor
                            request.post({url: machine.url + 'api/login', form: {name: process.env.USER_NAME, password: process.env.PASSWORD}}, function(error, response, body) {
+                             if (!error && response && body) {     
                                let options = {
-                                   url: machine.url + 'api/jobs',
-                                   headers: {
-                                     'Authorization': 'JWT ' + JSON.parse(response.body).token
-                                   }
-                               }
-                               request.get(options ,function(error, response, body) {
-                                  m.jobs = JSON.parse(response.body).jobs
-                                  details.push(m)
-                               })
+                                     url: machine.url + 'api/jobs',
+                                     headers: {
+                                       'Authorization': 'JWT ' + JSON.parse(response.body).token
+                                     }
+                                 }
+                                 request.get(options ,function(error, response, body) {
+                                    m.jobs = JSON.parse(response.body).jobs
+                                    details.push(m)
+                                 })
+                              }
                            })
                          }
                       })
@@ -523,13 +525,23 @@ scheduler.add(10000, function(done) {
                             .forEach( service => {
                                if (!services.includes(service)) {
                                   //remove it from machinesId
-                                  ws.send(JSON.stringify({
-                                    id      : id,
-                                    token   : token,
-                                    event   : 'serviceDown'
-                                  }), (err) => {
-                                    if (err){
-                                      logger.error(`@wrapperWS: ${err}.`)
+                                  db.dbUsetRem(rclient, dbKeys.machines, service, reply => {
+                                    if (reply === 1) {
+                                      let index = machinesId.indexOf(service)
+                                      if (index > -1) {
+                                        machinesId.splice(index, 1)
+                                      } 
+                                      ws.send(JSON.stringify({
+                                        id      : id,
+                                        token   : token,
+                                        event   : 'serviceDown'
+                                      }), (err) => {
+                                        if (err){
+                                          logger.error(`@wrapperWS: ${err}.`)
+                                        }
+                                      })
+                                    } else {
+                                      logger.error(`@wrapper: db error cannot remove service.`)
                                     }
                                   })
                                }

@@ -8,10 +8,10 @@ let PORT = process.env.PORT || 1337;
 
 zetta()
   .name('fablab-gateway')
-  .expose('*')
+  //.expose('*')
   .listen(PORT, function(err) {
     if(err) {
-      console.error(err);
+      logger.error(err);
       process.exit(1);
     }
     logger.info('running on http://pigateway.local:', PORT)
