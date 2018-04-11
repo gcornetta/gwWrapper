@@ -279,8 +279,10 @@ let refresh = function () {
                                      }
                                  }
                                  request.get(options ,function(error, response, body) {
-                                    m.jobs = JSON.parse(response.body).jobs
-                                    details.push(m)
+                                     if (response.body !== undefined) {
+                                         m.jobs = JSON.parse(response.body).jobs
+                                         details.push(m)
+                                     }
                                  })
                               }
                            })
