@@ -1,11 +1,11 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const url = require('url')
-const redis = require('redis')
+const redis = require('ioredis')
 const randomstring = require('randomstring')
 const Scheduler = require('nschedule');
 const Siren = require('siren-client')
-const pm2 = require('pm2') 
+const pm2 = require('pm2')
 const logger = require('./logger/winston')
 const async = require('async')
 const db = require('./db/db')
@@ -74,11 +74,30 @@ let dbKeys = {
    jobs      : 'fablab:jobs' // hash con trabajos usuarios y estado
 }
 
-let rclient = redis.createClient()
+let rclient = new redis.Cluster([{host:"piredis-01.local", port:7000},{host:"piredis-01.local", port:7001},{host:"piredis-02.local", port:7000},{host:"piredis-02.local", port:7001}])
+
+/*rclient.on("connect", function(msg){console.log("--------connect--------"); console.log(msg)})
+rclient.on("ready", function(msg){console.log("--------ready--------"); console.log(msg)})
+rclient.on("error", function(msg){console.log("--------error--------"); console.log(msg)})
+rclient.on("close", function(msg){console.log("--------close--------"); console.log(msg)})
+
+/*db.dbGet(rclient, dbKeys.quota, function(reply){console.log("db.dbGet");console.log(reply)})
+db.dbSet(rclient, dbKeys.quota, 200, function(reply){console.log("db.dbSet");console.log(reply)})
+db.dbDel(rclient, dbKeys.quota, function(reply){console.log("db.dbDel");console.log(reply)})
+db.dbGet(rclient, dbKeys.quota, function(reply){console.log("db.dbGet");console.log(reply)})
+
+db.dbUsetAdd(rclient, "uset", 99, function(reply){console.log("db.dbUsetAdd");console.log(reply)})
+db.dbUsetAdd(rclient, "uset", 100, function(reply){console.log("db.dbUsetAdd");console.log(reply)})
+db.dbUsetRem(rclient, "uset", "100", function(reply){console.log("db.dbUsetRem");console.log(reply)})
+db.dbGetUsetAll(rclient, "uset", function(reply){console.log("db.dbGetUsetAll");console.log(reply)})
+
+db.dbGetHash(rclient, dbKeys.opday + "monday", function(reply){console.log("db.dbGetHash");console.log(reply)})
+db.dbGetSetAll(rclient, dbKeys.opdays, function(reply){console.log("db.dbGetSetAll");console.log(reply)})
+db.dbSetHash(rclient, dbKeys.opday + "monday", ['from','11:00', 'to', '21:00'], function(reply){console.log("db.dbSetHash");console.log(reply)})
 
 rclient.on('error', err => {
   logger.error (`@wrapper: Database error: ${err}`)
-})
+})*/
 
 let materials = ['wood', 'copper', 'acrylic', 'vinyl', 'mylar', 'cardboard']
 
@@ -96,7 +115,7 @@ process.stdin.resume() //so the program will not close instantly
 let exitHandler = function () {
   pm2.connect ( err => {
     if (err) {
-      self.log(`${err.toString().toLowerCase()}.`)                                                                                      
+      self.log(`${err.toString().toLowerCase()}.`)
       process.exit(2)  
     } else {
       pm2.sendSignalToProcessName('SIGTERM', 'zetta', (err, result) =>{
