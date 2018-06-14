@@ -25,7 +25,7 @@ reconnect();
 
 function reconnect(){
     logger.info(`@wrapper: Reconnect ws`);
-    ws = new WebSocket('ws://10.80.1.219:3333');
+    ws = new WebSocket(process.env.CLOUD_WS);
 
     ws.on('open', function open(){
         logger.info(`@wrapper: Websocket opened`);
