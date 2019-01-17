@@ -74,7 +74,7 @@ To install the Machine Wrapper module go through the following steps:
 If you plan to use the Fab Lab APIs Wrapper software behind Express Gateway you should configure Express Gateway to redirect all the incoming requests to `localhost:3000`. Please, refer to this [link](https://www.express-gateway.io/docs/configuration/gateway.config.yml/) in order to suitably configure Express Gateway.
 
 <a name="software-description"></a>
-# Software description
+# Software and infrastructure description
 <p align="justify">
 The Fab Lab APIs Wrapper (i.e. the Pi-Gateway) has been designed as an independent microservice that acts at the Fab Lab Gateway backend. The software implements features to communicate and control the Fabrication Machine Wrappers (i.e. the Pi-Wrappers). The Pi-Gateway relies on Redis to keep the status of the Fab Lab (running fabrication batches, machine status, user quotas, etc.)  
 </p>
