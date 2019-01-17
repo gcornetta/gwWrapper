@@ -194,18 +194,18 @@ The Fab Lab APIs implement methods to get Fab Lab status and API quota, to delet
     <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
     <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
     <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
-    <td>Delete the job <br>whose id specified in the query string</td>
+    <td>Delete the job <br>whose <b>id</b> is specified in the URL path</td>
   </tr>
 </table>
 
 <a name="versioning"></a>
 ### Versioning
 
-API versioning is not mandatory for machine wrapper APIs.
+API versioning is not mandatory for Fab Lab APIs.
 
 <a name="supported-formats"></a>
 ### Supported formats
-Machine wrapper APIs exclusively support JSON format.
+Fab Lab APIs exclusively support JSON format.
 
 <a name="error-management"></a>
 ### Error management
@@ -216,7 +216,7 @@ The API error codes will match HTTP codes. The following cases are managed:
 2.	The application did something wrong (client error): **400–Bad Request**. 
 3.	The API did something wrong (server error): **500–Internal Server Error**.
 
-<p align="justifyr">
+<p align="justify">
 In the case of client and server error, the server will return in the response a JSON object with error details and hints to correct it. The message has the following format:
 </p>
 
@@ -226,41 +226,69 @@ In the case of client and server error, the server will return in the response a
   </code>
 </p>
 
-Table 3 reports error codes and details.
+Table 2 reports error codes and details.
 
 <table>
-  <caption>Table 3: Machine Wrapper Error Codes</caption>
+  <caption>Table 2: Fab Lab API Wrapper Error Codes</caption>
   <tr>
     <th>Error Code</th>
     <th>Error Details</th>
   </tr>
   <tr>
-    <td>20</td>
-    <td>Machine not found</td>
+    <td>1</td>
+    <td>Fab Lab communication error</td>
   </tr>
   <tr>
-    <td>21</td>
-    <td>Bad request</td>
+    <td>2</td>
+    <td>Database error</td>
   </tr>
   <tr>
-    <td>22</td>
-    <td>Unsupported file format</td>
+    <td>3</td>
+    <td>The Fab Lab object has not been built yet</td>
   </tr>
   <tr>
-    <td>23</td>
-    <td>mkdir -p error</td>
+    <td>4</td>
+    <td>Unknown authorization error</td>
   </tr>
   <tr>
-    <td>24</td>
-    <td>FIFO error</td>
+    <td>5</td>
+    <td>Unknown machine error</td>
   </tr>
   <tr>
-    <td>25</td>
-    <td>Missing attachment</td>
+    <td>6</td>
+    <td>Database error. Cannot read</td>
   </tr>
   <tr>
-    <td>26</td>
-    <td>Machine update error</td>
+    <td>7</td>
+    <td>Fab Lab busy</td>
+  </tr>
+    <tr>
+    <td>8</td>
+    <td>Database error. Cannot write</td>
+  </tr>
+    <tr>
+    <td>9</td>
+    <td>API quota consumed</td>
+  </tr>
+    <tr>
+    <td>10</td>
+    <td>Cannot connect to target machine</td>
+  </tr>
+    <tr>
+    <td>11</td>
+    <td>Undefined user</td>
+  </tr>
+    <tr>
+    <td>12</td>
+    <td>Undefined machine</td>
+  </tr>
+    <tr>
+    <td>13</td>
+    <td>Invalid route. Job not in database</td>
+  </tr>
+    <tr>
+    <td>14</td>
+    <td>Database error. Cannot delete</td>
   </tr>
 </table>
 
