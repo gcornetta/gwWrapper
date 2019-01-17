@@ -105,7 +105,7 @@ Deploying the Fab Lab infrastructure in an enterprise network that is not manage
 </p>
 
 <p align="justify">
-Fig. 1 depicts the cloud architecture and services to allow outgoing requests from the Pi-Gateway to the internet.
+Fig. 1 depicts the cloud architecture and services to allow outgoing requests from the Pi-Gateway to the internet. Observe that the <b>Fab Lab Gateway</b> is a router/firewall that belongs to the enterprise network. It is not part of the Fab Lab infrastructure and is managed by the our University network administrators.
 </p>
 
 <figure>
