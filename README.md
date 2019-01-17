@@ -20,7 +20,7 @@ This software is part of a larger suite of microservices designed to remotely ma
    * [Hardware prerequisites](#hardware-prerequisites)
    * [Software prerequisites](#software-prerequisites)
    * [Installation](#installation)
-2. [Software descriotion](#software-description)
+2. [Software and Infrastructure description](#software-description)
    * [Running npm behind a proxy](#npm-proxy)
 3. [Documentation and developer support](#documentation-and-developer-support)
    * [Machine APIs](#machine-apis)
@@ -86,4 +86,16 @@ All the Fab Lab management software has been written entirely in JavaScript usin
 
 <p align="justify">
 In our specific case, the Fab Lab has been deployed in a complex enterprise network set-up that is not managed by us, but by the system administrators of our University. This means that the Pi-Gateway has neither a public IP address nor a direct access to the internet. If this is not your case, probably these considerations will not apply to you and you may skip this section. 
+</p>
+
+<p>Deploying the Fab Lab infrastructure in an enterprise network that is not managed by you, could result particularly challenging. More specifically, in our case:
+  <ul>
+    <li>The Pi-Gateway has no direct Internet access necessary to reach the Cloud Hub infrastructure.</li>
+    <li>The Cloud Hub is tightly integrated with AWS managed services and uses <b>Route 53</b> for name resolution (DNS). Unfortunately,
+        this service is not visible from the VPN tunnel; thus, a lightweight DNS service must be deployed on the cloud side of the
+        infrastructure to resolve network names into IP addresses</li>
+    <li>HA-Proxy, that is used to load balance the incoming requests among the services deployed on the cloud infrastructure, cannot
+        work as a forward proxy; thus, it is necessary to the deploy on the cloud end also a lightweight proxy service in order to
+        forward to the internet the requests coming from the Pi-Gateway.</li>
+  </ul>
 </p>
