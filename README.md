@@ -343,7 +343,7 @@ Finally, Fig. 5 depicts the API response obtained after pressing the execute but
 
 <figure>
   <p align="center">
-    <img src="/docs/images/api-jwt-response.png" alt="API JWT AUTHORIZATION TOKEN"/>
+    <img src="/docs/images/api-documentation-response.png" alt="API RESPONSE"/>
     <figcaption>Fig. 5 - Example of Gateway API Response.</figcaption>
   </p>
 </figure>
