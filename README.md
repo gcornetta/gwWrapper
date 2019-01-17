@@ -77,6 +77,7 @@ If you plan to use the Fab Lab APIs Wrapper software behind Express Gateway you 
 <p align="justify">
 The Fab Lab APIs Wrapper (i.e. the Pi-Gateway) has been designed as an independent microservice that acts at the Fab Lab Gateway backend. The software implements features to communicate and control the Fabrication Machine Wrappers (i.e. the Pi-Wrappers). The Pi-Gateway relies on Redis to keep the status of the Fab Lab (running fabrication batches, machine status, user quotas, etc.)  
 </p>
+
 <a name="npm-proxy"></a>
 ## Running npm behind a proxy
 <p align="justify">
@@ -84,5 +85,5 @@ All the Fab Lab management software has been written entirely in JavaScript usin
 </p>
 
 <p align="justify">
-In our specific case, the Fab Lab has been deployed in a complex enterprise network set-up that is not managed by us, but by the system administrators of our University. This means that the Pi-Gateway has neither a public IP address nor a direct access to the internet. <u>If this is not your case, probably these considerations will not apply to you and you may skip this section</u>. 
+In our specific case, the Fab Lab has been deployed in a complex enterprise network set-up that is not managed by us, but by the system administrators of our University. This means that the Pi-Gateway has neither a public IP address nor a direct access to the internet. If this is not your case, probably these considerations will not apply to you and you may skip this section. 
 </p>
