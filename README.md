@@ -137,3 +137,123 @@ registry=http://registry.npmjs.org
 <p align="justify">
   This indeed is not a security issue since the information is already encrypted in the <b>IPSec</b> tunnel that connects the Fab Lab to the cloud infrastructure; however, if one would like to implement a transparent proxy supporting also HTTPS connection, <b>Squid</b>  can be used instead of Tinyproxy. Nonetheless, Squid is not so easy to configure and deploy as Tinyproxy is. 
 </p>
+
+# Documentation and developer support
+
+<p align="justify">
+The Fab Lab software infrastructure has been designed with the developer in mind. For this reason, Swagger has been integrated into the Pi-Gateway and the Pi-Wrapper middleware. This allow the developer to have on-line access to the API documentation and to test the native APIs through the Swagger User interface (Swagger UI).  In addition, the API-first approach used to the develop the Fab Lab software allows to easily expand the software, the protocol stack and add new features adding new layers on top of the native APIs without the need of modifying the core software architecture.
+</p>
+
+<a name="machine-apis"></a>
+## Machine APIs
+<p align="justify">
+Machine wrapper APIs expose methods to add, remove and modify jobs in a machine. These methods can be only accessed from the Fab Lab Gateway (i.e. the Pi-Gateway).
+  
+Table 2 displays the resource URI and the implemented HTTP verbs for the Machine Wrapper (i.e. the Pi-Wrapper) APIs. 
+</p>
+
+<table>
+  <caption>Table 2: MAchine Wrapper APIs</caption>
+  <tr>
+    <th>Resource</th>
+    <th>GET</th>
+    <th>POST</th>
+    <th>PUT</th>
+    <th>DELETE</th>
+  </tr>
+  <tr>
+    <td>/api/login</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Returns a JWT <br>if login is correct; <br>otherwise displays<br>an error<br>(<span style="font-weight:bold">401 Unauthorized</span>)</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
+  </tr>
+  <tr>
+    <td>/api/jobs</td>
+    <td>Returns an array <br>with all the jobs</td>
+    <td>Submit a job <br>for fabrication</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
+  </tr>
+  <tr>
+    <td>/api/jobs/1234</td>
+    <td>Show the status <br>of the job with <br>id=1234</td>
+    <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Updates the status <br>of the job with <br>id=1234</td>
+    <td>Deletes a job if it exists; <br>otherwise displays <br>an error <br>(<span style="font-weight:bold">404 Not found</span>)</td>
+  </tr>
+  <tr>
+    <td>/api/jobs?user=123&amp;machine=laser%20cutter<br>&amp;process=cut&amp;material=wood</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Submit a job <br>to the Machine</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
+  </tr>
+</table>
+
+<a name="versioning"></a>
+### Versioning
+
+API versioning is not mandatory for machine wrapper APIs.
+
+<a name="supported-formats"></a>
+### Supported formats
+Machine wrapper APIs exclusively support JSON format.
+
+<a name="error-management"></a>
+### Error management
+
+The API error codes will match HTTP codes. The following cases are managed:
+
+1.	Everything worked (success): **200–OK**.
+2.	The application did something wrong (client error): **400–Bad Request**. 
+3.	The API did something wrong (server error): **500–Internal Server Error**.
+
+<p align="justifyr">
+In the case of client and server error, the server will return in the response a JSON object with error details and hints to correct it. The message has the following format:
+</p>
+
+<p align="center">
+  <code>
+    {code: the error code, message: the error message, details: the error details}
+  </code>
+</p>
+
+Table 3 reports error codes and details.
+
+<table>
+  <caption>Table 3: Machine Wrapper Error Codes</caption>
+  <tr>
+    <th>Error Code</th>
+    <th>Error Details</th>
+  </tr>
+  <tr>
+    <td>20</td>
+    <td>Machine not found</td>
+  </tr>
+  <tr>
+    <td>21</td>
+    <td>Bad request</td>
+  </tr>
+  <tr>
+    <td>22</td>
+    <td>Unsupported file format</td>
+  </tr>
+  <tr>
+    <td>23</td>
+    <td>mkdir -p error</td>
+  </tr>
+  <tr>
+    <td>24</td>
+    <td>FIFO error</td>
+  </tr>
+  <tr>
+    <td>25</td>
+    <td>Missing attachment</td>
+  </tr>
+  <tr>
+    <td>26</td>
+    <td>Machine update error</td>
+  </tr>
+</table>
+
