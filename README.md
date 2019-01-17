@@ -22,6 +22,7 @@ This software is part of a larger suite of microservices designed to remotely ma
    * [Installation](#installation)
 2. [Software and Infrastructure description](#software-description)
    * [Running npm behind a proxy](#npm-proxy)
+   * [Some Tinyproxy limitations](#tinyproxy-limitations)
 3. [Documentation and developer support](#documentation-and-developer-support)
    * [Machine APIs](#machine-apis)
      + [Versioning](#versioning)
@@ -126,3 +127,13 @@ ca=null
 registry=http://registry.npmjs.org
 
 ```
+
+<a name="tinyproxy-limitations"></a>
+## Some Tinyproxy limitations
+<p align="justify">
+  <b>Tinyproxy</b> is a lightweight proxy service easy to install, deploy and configure. However, there is a limitation when used with the Fab Lab APIs Wrapper. The APIs Wrapper supports both HTTP and HTTPS connection. Unfortunately, this HTTPS connections cannot be used with the actual software infrastructure because Tinyproxy does not accept incoming HTTPS connections. HTTPS connections in Tinyproxy are only supported using the <b>CONNECT</b> method which implies that the browser/client must know a-priori it is talking to a proxy server and use <b>CONNECT</b> to implement a connection.  
+</p>
+
+<p align="justify">
+  This indeed is not a security issue since the information is already encrypted in the <b>IPSec</b> tunnel that connects the Fab Lab to the cloud infrastructure; however, if one would like to implement a transparent proxy supporting also HTTPS connection, <b>Squid</b>  can be used instead of Tinyproxy. Nonetheless, Squid is not so easy to configure and deploy as Tinyproxy is. 
+</p>
