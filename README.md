@@ -292,69 +292,128 @@ Table 2 reports error codes and details.
   </tr>
 </table>
 
+<a name="on-line-documentation"></a>
+### On-line documentation
+
+The Machine Wrapper API documentation can be accessed from the Fab Lab network at the following URL:
+
+<p align="center">
+  <code>
+    http://wrapper_name.local:8888/docs
+    </code>
+    </p>
+
+<p align="justify">
+This URL leads to the Pi-Wrapper API documentation landing page depicted in Fig. 16. The lock indicates that these API are secured. API access is guaranteed with a JWT token that is issued by the system to Fab Lab authorized users. <b>Please note that Swagger UI HTML code is linked to external stylesheets and javascript code; thus you must ensure your network has external connectivity in order to use this feature</b>.
+</p>
+
+<figure>
+  <p align="center">
+    <img src="/docs/images/api-landing.png" alt="API DOCUMENTATION LANDING PAGE"/>
+    <figcaption>Fig. 16 - The API Documentation Landing Page.</figcaption>
+  </p>
+</figure>
+
+<p align="justify">
+In order to use the Swagger User Interface and test the API, a user must get an authorization token first. This can be accomplished with the <code>/login</code> API that accepts a form with username and password (see Fig. 17).
+</p>
+
+<figure>
+  <p align="center">
+    <img src="/docs/images/api-authentication.png" alt="API AUTHENTICATION"/>
+    <figcaption>Fig. 17 - API Authentication.</figcaption>
+  </p>
+</figure>
+
+<p align="justify">
+If the authentication is successful, the API returns a response with a 200 status code and the JWT authorization token as depicted in Fig.18.
+</p>
+
+<figure>
+  <p align="center">
+    <img src="/docs/images/api-jwt-response.png" alt="API JWT AUTHORIZATION TOKEN"/>
+    <figcaption>Fig. 18 - API Response with the JWT Authentication Token.</figcaption>
+  </p>
+</figure>
+
 <a name="api-responses"></a>
 ### APIs responses
 
-#### Login
+#### Tell me about the Fab Lab
 
 ```
-POST /api/login
-
-Body:
-{
-   "name": "the user password",
-   "password": "the user password"
-
-}
+GET /fablab
 ```
 
 _Response_:
 
 ```
 200 OK
-
 {
-   "message": "ok",
-   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU5ZDIxYzUzODk5NTYxMzBlM2JmZjhkYyIsImV4cERhdGUiOjE1MTY3MDI2NjEyNjgsImlhdCI6MTUxNjYxNjI2MX0.b1QKle3wh2LZsbdb8CsMJQLR0a5sopBBUDzlvX0hfVw"
+“fablab”: {
+  “id”: 1234
+  .... 
+},
+ “jobs”: {
+  ....
+ }
 }
 ```
+#### Tell me about the Fab Lab quota
+
+```
+GET /fablab/quota
+```
+
+_Response_:
+
+```
+200 OK
+{
+“id”: 1234,
+“quota”: 2000
+}
+```
+
 #### Submit a job
 
 ```
-POST
-/api/jobs?user=1234&machine=laser%20cutter&process=cut&material =wood
+POST /fablab/jobs?user=1234&machine=laser%20cutter&process=cut&material=wood
 ```
 
 _Response_:
 
 ```
 200 OK
-
 {
-   "jobId": "3a88b824-7268-4468-947a-054f39c86169"
+“id”: 1234,
+“mId”: 3456,
+“jobId”: 4567
 }
 ```
-
 <p align="justify">
 Recall, that with this method a design file in PNG format is uploaded on the server. Our API specifications correspond to the HTTP request depicted below.
 </p>
 
 ```
-POST /api/jobs
-Host: piwrapper.local/public/uploads
+POST /fablab/jobs
+Host: pigateway.local/public/uploads
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryqzByvokjOTfF9UwD
 Content-Length: 204
+
 ------WebKitFormBoundaryqzByvokjOTfF9UwD
 Content-Disposition: form-data; name="design"; filename="design.png"
 Content-Type: image/png
+
 File contents go here.
-------WebKitFormBoundaryqzByvokjOTfF9UwD—
+
+------WebKitFormBoundaryqzByvokjOTfF9UwD--
 ```
 
-#### Tell me about the status of all the jobs:
+#### Tell me about a job
 
 ```
-GET /api/jobs
+GET /fablab/jobs/1234
 ```
 
 _Response_:
@@ -362,75 +421,21 @@ _Response_:
 ```
 200 OK
 {
-   "jobs": [
-      {
-         "id": "b5136915-cc09-47b4-b97f-8f2e5026af45",
-         "status": "cancelled",
-         "queue": "global"
-      },
-      {
-       "id": "5c28a9b3-2eb6-4058-be11-a0682d94090d",
-       "status": "cancelled",
-       "queue": "global"
-      }
-    ]
+   “id”: 1235
+ 
 }
 ```
 
-#### Tell me about the status of a particular job
+#### Cancel a job
 
 ```
-GET /api/jobs/b5136915-cc09-47b4-b97f-8f2e5026af45
+DELETE /fablab/jobs/1235
 ```
 
 _Response_:
 
 ```
 200 OK
-
-{
-   "job": {
-      "material": "vinyl",
-      "switchSort": "on",
-      "origin": "bottom left",
-      "diameter": 0.25,
-      "offsets": 1,
-      "overlap": 50,
-      "error": 1.5,
-      "threshold": 0.5,
-      "merge": 1.1,
-      "order": -1,
-      "sequence": -1,
-      "power": 45,
-      "speed": 2,
-      "xCoord": 50,
-      "yCoord": 50,
-      "userId": "the user id",
-      "jobId": "b5136915-cc09-47b4-b97f-8f2e5026af45",
-      "status": "cancelled",
-      "jobPath": "the path to the design file",
-      "caller": "api",
-      "createdOn": 1516112089.866
-    }
-}
-
-```
-
-#### Delete a job
-
-```
-DELETE /api/jobs/b5136915-cc09-47b4-b97f-8f2e5026af45
-```
-
-_Response_:
-
-```
-200 OK
-
-{
-   "message": "OK",
-   "details": "Job deleted successfully"
-}
 ```
 
 <a name="websites"></a>
