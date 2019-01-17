@@ -63,7 +63,7 @@ We have not tested the software with Redis latest version; however it should wor
 
 <a name="installation"></a>
 ## Installation
-To install the Machine Wrapper module go through the following steps:
+To install the Fab Lab APIs Wrapper module go through the following steps:
 
 1. download or clone this repo,
 2. run `npm install` in the installation folder,
