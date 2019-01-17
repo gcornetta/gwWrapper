@@ -295,44 +295,56 @@ Table 2 reports error codes and details.
 <a name="on-line-documentation"></a>
 ### On-line documentation
 
-The Machine Wrapper API documentation can be accessed from the Fab Lab network at the following URL:
+The Fab Lab APIs documentation can be accessed from the Fab Lab network at the following URL:
 
 <p align="center">
   <code>
-    http://wrapper_name.local:8888/docs
+    http://gateway_name.local:3000/docs
     </code>
     </p>
 
 <p align="justify">
-This URL leads to the Pi-Wrapper API documentation landing page depicted in Fig. 16. The lock indicates that these API are secured. API access is guaranteed with a JWT token that is issued by the system to Fab Lab authorized users. <b>Please note that Swagger UI HTML code is linked to external stylesheets and javascript code; thus you must ensure your network has external connectivity in order to use this feature</b>.
+This URL leads to the Pi-Gateway API documentation landing page depicted in Fig. 2. <b>Please note that Swagger UI HTML code is linked to external stylesheets and javascript code; thus you must ensure your network has external connectivity in order to use this feature</b>.
 </p>
 
 <figure>
   <p align="center">
     <img src="/docs/images/api-landing.png" alt="API DOCUMENTATION LANDING PAGE"/>
-    <figcaption>Fig. 16 - The API Documentation Landing Page.</figcaption>
+    <figcaption>Fig. 2 - The API Documentation Landing Page.</figcaption>
   </p>
 </figure>
 
-<p align="justify">
-In order to use the Swagger User Interface and test the API, a user must get an authorization token first. This can be accomplished with the <code>/login</code> API that accepts a form with username and password (see Fig. 17).
+<p align="justify"> 
+The documentation page allows navigating through the API paths and allowed HTTP verbs; for example, the screenshot of Fig. 3 depicts the documentation page of the API invoked by executing a GET request to the Fab Lab Gateway base URL.
 </p>
 
 <figure>
   <p align="center">
     <img src="/docs/images/api-authentication.png" alt="API AUTHENTICATION"/>
-    <figcaption>Fig. 17 - API Authentication.</figcaption>
+    <figcaption>Fig. 3 - API Documentation for a GET Request to the Gateway Base URL.</figcaption>
   </p>
 </figure>
 
 <p align="justify">
-If the authentication is successful, the API returns a response with a 200 status code and the JWT authorization token as depicted in Fig.18.
+The page shows the API description and an example of API response with 200 status code. In the case of API with content negotiation, the interface also allows selecting the response type. Finally, the interface has a “Try it out” button that allows to perform a request to the API and check the response in the web user interface.
+When the “Try it out” button is pressed, the user is redirected to another page that allows to submit to the API, query string parameters, forms, files, etc.  (see Fig. 4). In the case of Fig. 4, the API call is very simple and has no parameters.
 </p>
 
 <figure>
   <p align="center">
     <img src="/docs/images/api-jwt-response.png" alt="API JWT AUTHORIZATION TOKEN"/>
-    <figcaption>Fig. 18 - API Response with the JWT Authentication Token.</figcaption>
+    <figcaption>Fig. 4 - API Call Submission Form.</figcaption>
+  </p>
+</figure>
+
+<p> 
+Finally, Fig. 5 depicts the API response obtained after pressing the execute button.
+</p>
+
+<figure>
+  <p align="center">
+    <img src="/docs/images/api-jwt-response.png" alt="API JWT AUTHORIZATION TOKEN"/>
+    <figcaption>Fig. 5 - Example of Gateway API Response.</figcaption>
   </p>
 </figure>
 
