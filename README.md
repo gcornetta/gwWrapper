@@ -91,11 +91,13 @@ In our specific case, the Fab Lab has been deployed in a complex enterprise netw
 <p align="justify">Deploying the Fab Lab infrastructure in an enterprise network that is not managed by you, could result particularly challenging. More specifically, in our case:
   <ul>
     <li>The Pi-Gateway has no direct Internet access necessary to reach the Cloud Hub infrastructure.</li>
-    <li>The Cloud Hub is tightly integrated with AWS managed services and uses <b>Route 53</b> for name resolution (DNS). Unfortunately,
+    <li><p align="justify">
+        The Cloud Hub is tightly integrated with AWS managed services and uses <b>Route 53</b> for name resolution (DNS). Unfortunately,
         this service is not visible from the VPN tunnel; thus, a lightweight DNS service must be deployed on the cloud side of the
-        infrastructure to resolve network names into IP addresses</li>
-    <li>HA-Proxy, that is used to load balance the incoming requests among the services deployed on the cloud infrastructure, cannot
+        infrastructure to resolve network names into IP addresses,</p></li>
+    <li><p align="justify">
+        HA-Proxy, that is used to load balance the incoming requests among the services deployed on the cloud infrastructure, cannot
         work as a forward proxy; thus, it is necessary to the deploy on the cloud end also a lightweight proxy service in order to
-        forward to the internet the requests coming from the Pi-Gateway.</li>
+        forward to the internet the requests coming from the Pi-Gateway.</p></li>
   </ul>
 </p>
