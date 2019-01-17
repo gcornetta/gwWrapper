@@ -320,7 +320,7 @@ The documentation page allows navigating through the API paths and allowed HTTP 
 
 <figure>
   <p align="center">
-    <img src="/docs/images/api-authentication.png" alt="API AUTHENTICATION"/>
+    <img src="/docs/images/api-documentation-GET.png" alt="API DOCUMENTATION"/>
     <figcaption>Fig. 3 - API Documentation for a GET Request to the Gateway Base URL.</figcaption>
   </p>
 </figure>
