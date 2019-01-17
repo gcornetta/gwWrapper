@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node --no-warnings index.js",
     "test": "echo \"Error: no test specified\" && exit 0",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect"
