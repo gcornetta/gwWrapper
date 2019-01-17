@@ -88,7 +88,8 @@ All the Fab Lab management software has been written entirely in JavaScript usin
 In our specific case, the Fab Lab has been deployed in a complex enterprise network set-up that is not managed by us, but by the system administrators of our University. This means that the Pi-Gateway has neither a public IP address nor a direct access to the internet. If this is not your case, probably these considerations will not apply to you and you may skip this section. 
 </p>
 
-<p align="justify">Deploying the Fab Lab infrastructure in an enterprise network that is not managed by you, could result particularly challenging. More specifically, in our case:
+<p align="justify">
+Deploying the Fab Lab infrastructure in an enterprise network that is not managed by you, could result particularly challenging. More specifically, in our case:
   <ul>
     <li>The Pi-Gateway has no direct Internet access necessary to reach the Cloud Hub infrastructure.</li>
     <li><p align="justify">
@@ -113,11 +114,15 @@ Fig. 1 depicts the cloud architecture and services to allow outgoing requests fr
   </p>
 </figure>
 
-```
-127.0.0.1       localhost
-::1             localhost ip6-localhost ip6-loopback
-ff02::1         ip6-allnodes
-ff02::2         ip6-allrouters
+<p align="justify">
+Once the DNS and proxy services have been correctly configured, the npm package installed on the Pi-Gateway must be configured as well in order to correctly operate behind a proxy. This can be done by either using the npm command line interface or directly editing with your favourite editor the <b>.npmrc</b> file located in the Pi-Gateway home directory specifying the URL and listening port of the proxy service. Please, observe, that in the VPN configuration of Fig. 1 all the services communicate using private IP addresses. The configuration file is reported in the sequel:
+</p>
 
-127.0.1.1       piwrapper
+```
+proxy=http://<proxy_private_ip_address>:<proxy_port_number>
+https-proxy=http://<proxy_private_ip_address>:<proxy_port_number>
+strict-ssl=false
+ca=null
+registry=http://registry.npmjs.org
+
 ```
