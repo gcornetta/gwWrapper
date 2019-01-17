@@ -20,7 +20,6 @@ This software is part of a larger suite of microservices designed to remotely ma
    * [Hardware prerequisites](#hardware-prerequisites)
    * [Software prerequisites](#software-prerequisites)
    * [Installation](#installation)
-   * [Testing](#testing)
 2. [System architecture](#system-architecture)
    * [Software architecture](#software-architecture)
    * [Hardware architecture](#hardware-architecture)
@@ -39,3 +38,42 @@ This software is part of a larger suite of microservices designed to remotely ma
 5. [Websites](#websites)
 6. [Contribution guidelines](#contribution-guidelines)
 7. [License](#license)
+
+<a name="preliminary-steps"></a>
+# Preliminary steps
+<p align="justify">
+Before installing the software you have to make sure that you comply with the hardware and software requirements specified in the next two sections.
+</p>
+
+<a name="hardware-prerequisites"></a>
+## Hardware prerequisites
+<p align="justify">
+This software has been tested on a Raspberry Pi III Model B (amrv7 32-bit architecture) with a 8-GByte SD card. You need at least 150 MBytes of free disk space to install the software.
+</p>
+
+<a name="software-prerequisites"></a>
+## Software prerequisites
+<p align="justify">
+The Machine wrapper software requires that you previously install on your system the following software packages:
+</p>
+
+1. Redis v4.x
+2. Express Gateway v1.x (optional)
+
+<p align="justify">
+We have not tested the software with Redis latest version; however it should work without any problem if you update <b>redis</b> client to the last version in the `package.json` file with the project dependencies.
+</p>
+
+<a name="installation"></a>
+## Installation
+To install the Machine Wrapper module go through the following steps:
+
+1. download or clone this repo,
+2. run `npm install` in the installation folder,
+3. run `npm run start` to start the service.
+
+<p align="justify">
+  The server listen to <b>port 3000</b> of your Raspberry Pi. 
+</p>
+
+If you plan to use the Fab Lab Gateway software behind Express Gateway you should configure Express Gateway to redirect all the incoming requests to `localhost:3000`. Please, refer to this [link](https://www.express-gateway.io/docs/configuration/gateway.config.yml/) in order to suitably configure Express Gateway.
