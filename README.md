@@ -24,7 +24,7 @@ This software is part of a larger suite of microservices designed to remotely ma
    * [Running npm behind a proxy](#npm-proxy)
    * [Some Tinyproxy limitations](#tinyproxy-limitations)
 3. [Documentation and developer support](#documentation-and-developer-support)
-   * [Machine APIs](#machine-apis)
+   * [Fab Lab APIs](#fablab-apis)
      + [Versioning](#versioning)
      + [Supported formats](#supported-formats)
      + [Error management](#error-management)
@@ -144,16 +144,16 @@ registry=http://registry.npmjs.org
 The Fab Lab software infrastructure has been designed with the developer in mind. For this reason, Swagger has been integrated into the Pi-Gateway and the Pi-Wrapper middleware. This allow the developer to have on-line access to the API documentation and to test the native APIs through the Swagger User interface (Swagger UI).  In addition, the API-first approach used to the develop the Fab Lab software allows to easily expand the software, the protocol stack and add new features adding new layers on top of the native APIs without the need of modifying the core software architecture.
 </p>
 
-<a name="machine-apis"></a>
-## Machine APIs
+<a name="fablab-apis"></a>
+## Fab Lab APIs
 <p align="justify">
-Machine wrapper APIs expose methods to add, remove and modify jobs in a machine. These methods can be only accessed from the Fab Lab Gateway (i.e. the Pi-Gateway).
-  
-Table 2 displays the resource URI and the implemented HTTP verbs for the Machine Wrapper (i.e. the Pi-Wrapper) APIs. 
+Fab Lab APIs expose the underlying digital fabrication machines as software service that can be accessed from the Cloud Hub. 
+These APIs are the entry point for the Fab Lab infrastructure and provide software methods that can be exploited to remotely control and monitor the digital fabrication machines using the cloud application interfaces.
+The Fab Lab APIs implement methods to get Fab Lab status and API quota, to delete a job submitted for fabrication and to send a fabrication request. Table 1 displays the resource URI and the implemented HTTP verbs for the Fab Lab APIs. 
 </p>
 
 <table>
-  <caption>Table 2: MAchine Wrapper APIs</caption>
+  <caption>Table 2: Fab Lab APIs</caption>
   <tr>
     <th>Resource</th>
     <th>GET</th>
@@ -162,32 +162,39 @@ Table 2 displays the resource URI and the implemented HTTP verbs for the Machine
     <th>DELETE</th>
   </tr>
   <tr>
-    <td>/api/login</td>
+    <td>/fablab</td>
+    <td>Shows the Fab Lab information</td>
     <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
-    <td>Returns a JWT <br>if login is correct; <br>otherwise displays<br>an error<br>(<span style="font-weight:bold">401 Unauthorized</span>)</td>
-    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
-    <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
-  </tr>
-  <tr>
-    <td>/api/jobs</td>
-    <td>Returns an array <br>with all the jobs</td>
-    <td>Submit a job <br>for fabrication</td>
     <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
     <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
   </tr>
   <tr>
-    <td>/api/jobs/1234</td>
+    <td>/fablab/quota</td>
+    <td>Shows the available API quota of the Fab Lab</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
+  </tr>
+  <tr>
+    <td>/fablab/jobs/status/1234</td>
     <td>Show the status <br>of the job with <br>id=1234</td>
     <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
-    <td>Updates the status <br>of the job with <br>id=1234</td>
-    <td>Deletes a job if it exists; <br>otherwise displays <br>an error <br>(<span style="font-weight:bold">404 Not found</span>)</td>
+    <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
   </tr>
   <tr>
-    <td>/api/jobs?user=123&amp;machine=laser%20cutter<br>&amp;process=cut&amp;material=wood</td>
+    <td>/fablab/jobs?user=123&machine=laser%20cutter&process=cut&material=wood</td>
     <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
-    <td>Submit a job <br>to the Machine</td>
+    <td>Submit a job <br>to a fablab specifying the user the machine types and the fabrication parameters in the query string</td>
     <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
     <td>Error 400<br>(<span style="font-weight:bold">Bad Request</span>)</td>
+  </tr>
+  <tr>
+    <td>/fablab/jobs/1235</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Error 400 <br>(<span style="font-weight:bold">Bad Request</span>)</td>
+    <td>Delete the job <br>whose id specified in the query string</td>
   </tr>
 </table>
 
