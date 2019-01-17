@@ -292,3 +292,159 @@ Table 2 reports error codes and details.
   </tr>
 </table>
 
+<a name="api-responses"></a>
+### APIs responses
+
+#### Login
+
+```
+POST /api/login
+
+Body:
+{
+   "name": "the user password",
+   "password": "the user password"
+
+}
+```
+
+_Response_:
+
+```
+200 OK
+
+{
+   "message": "ok",
+   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU5ZDIxYzUzODk5NTYxMzBlM2JmZjhkYyIsImV4cERhdGUiOjE1MTY3MDI2NjEyNjgsImlhdCI6MTUxNjYxNjI2MX0.b1QKle3wh2LZsbdb8CsMJQLR0a5sopBBUDzlvX0hfVw"
+}
+```
+#### Submit a job
+
+```
+POST
+/api/jobs?user=1234&machine=laser%20cutter&process=cut&material =wood
+```
+
+_Response_:
+
+```
+200 OK
+
+{
+   "jobId": "3a88b824-7268-4468-947a-054f39c86169"
+}
+```
+
+<p align="justify">
+Recall, that with this method a design file in PNG format is uploaded on the server. Our API specifications correspond to the HTTP request depicted below.
+</p>
+
+```
+POST /api/jobs
+Host: piwrapper.local/public/uploads
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryqzByvokjOTfF9UwD
+Content-Length: 204
+------WebKitFormBoundaryqzByvokjOTfF9UwD
+Content-Disposition: form-data; name="design"; filename="design.png"
+Content-Type: image/png
+File contents go here.
+------WebKitFormBoundaryqzByvokjOTfF9UwD—
+```
+
+#### Tell me about the status of all the jobs:
+
+```
+GET /api/jobs
+```
+
+_Response_:
+
+```
+200 OK
+{
+   "jobs": [
+      {
+         "id": "b5136915-cc09-47b4-b97f-8f2e5026af45",
+         "status": "cancelled",
+         "queue": "global"
+      },
+      {
+       "id": "5c28a9b3-2eb6-4058-be11-a0682d94090d",
+       "status": "cancelled",
+       "queue": "global"
+      }
+    ]
+}
+```
+
+#### Tell me about the status of a particular job
+
+```
+GET /api/jobs/b5136915-cc09-47b4-b97f-8f2e5026af45
+```
+
+_Response_:
+
+```
+200 OK
+
+{
+   "job": {
+      "material": "vinyl",
+      "switchSort": "on",
+      "origin": "bottom left",
+      "diameter": 0.25,
+      "offsets": 1,
+      "overlap": 50,
+      "error": 1.5,
+      "threshold": 0.5,
+      "merge": 1.1,
+      "order": -1,
+      "sequence": -1,
+      "power": 45,
+      "speed": 2,
+      "xCoord": 50,
+      "yCoord": 50,
+      "userId": "the user id",
+      "jobId": "b5136915-cc09-47b4-b97f-8f2e5026af45",
+      "status": "cancelled",
+      "jobPath": "the path to the design file",
+      "caller": "api",
+      "createdOn": 1516112089.866
+    }
+}
+
+```
+
+#### Delete a job
+
+```
+DELETE /api/jobs/b5136915-cc09-47b4-b97f-8f2e5026af45
+```
+
+_Response_:
+
+```
+200 OK
+
+{
+   "message": "OK",
+   "details": "Job deleted successfully"
+}
+```
+
+<a name="websites"></a>
+# Websites
+
+1. [Newton Fab Labs on Github](https://gcornetta.github.io/piwrapper/)
+2. [Newton Project Page](http://www.newtonproject.eu) 
+
+<a name="contribution-guidelines"></a>
+# Contribution guidelines
+
+Please see [CONTRIBUTING](CONTRIBUTING.md) and [CONDUCT](CONDUCT.md) for details.
+
+<a name="license"></a>
+# License
+
+This software is licensed under MIT license unless otherwise specified in the third-party modules included in this package.  
