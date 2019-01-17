@@ -88,7 +88,7 @@ All the Fab Lab management software has been written entirely in JavaScript usin
 In our specific case, the Fab Lab has been deployed in a complex enterprise network set-up that is not managed by us, but by the system administrators of our University. This means that the Pi-Gateway has neither a public IP address nor a direct access to the internet. If this is not your case, probably these considerations will not apply to you and you may skip this section. 
 </p>
 
-<p>Deploying the Fab Lab infrastructure in an enterprise network that is not managed by you, could result particularly challenging. More specifically, in our case:
+<p align="justify">Deploying the Fab Lab infrastructure in an enterprise network that is not managed by you, could result particularly challenging. More specifically, in our case:
   <ul>
     <li>The Pi-Gateway has no direct Internet access necessary to reach the Cloud Hub infrastructure.</li>
     <li>The Cloud Hub is tightly integrated with AWS managed services and uses <b>Route 53</b> for name resolution (DNS). Unfortunately,
