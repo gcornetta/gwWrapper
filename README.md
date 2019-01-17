@@ -4,9 +4,9 @@
 
 ![NEWTON BANNER](/docs/images/banner.png)
 
-# Fab Lab Modules: Machine Wrapper
+# Fab Lab Modules: Fab Lab Gateway
 <p align="justify">
-This software is part of a larger suite of microservices designed to remotely manage digital fabrication equipment in a loosely coupled and distributed environment. More specifically, the software in this repo provides a software abstraction layer for 3D printers, laser cutters, vinyl cutters and desktop milling machines and exposes them over the internet as web services that can be consumed through REST APIs.
+This software is part of a larger suite of microservices designed to remotely manage digital fabrication equipment in a loosely coupled and distributed environment. More specifically, the software in this repo provides implements the Fab Lab gateway with basic security policies. Fab Lab machines are not directly exposed to the interned, but rather they are protected by the Gateway which is the entry point to Fab Lab fabrication resources. The Gateway is responsible for managing Fab Lab access, routing incoming fabrication requests to available machines and interacting with the Cloud Hub to control fabrication status. The Fab Lab Gateway has be designed to work either as a standalone application or behind a more feature-rich and general-purpose gateway as, for example, __*Express Gateway*__ (<https://www.express-gateway.io/>). The Fab Lab cab be also controlled by a CLI that at the moment has not been open-sourced.
 </p>
 
 # About
