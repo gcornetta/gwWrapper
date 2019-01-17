@@ -52,8 +52,10 @@ This software has been tested on a Raspberry Pi III Model B (amrv7 32-bit archit
 The Machine wrapper software requires that you previously install on your system the following software packages:
 </p>
 
-1. Redis v4.x
-2. Express Gateway v1.x (optional)
+1. Node.js >= v8.x
+2. npm >= v6.0.x
+3. Redis v4.x
+4. Express Gateway v1.x (optional)
 
 <p align="justify">
 We have not tested the software with Redis latest version; however it should work without any problem if you update <b>redis</b> client to the last version in the `package.json` file with the project dependencies.
