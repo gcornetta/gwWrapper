@@ -332,7 +332,7 @@ When the “Try it out” button is pressed, the user is redirected to another p
 
 <figure>
   <p align="center">
-    <img src="/docs/images/api-jwt-response.png" alt="API JWT AUTHORIZATION TOKEN"/>
+    <img src="/docs/images/api-documentation-submit.png" alt="API SUBMISSION FORM"/>
     <figcaption>Fig. 4 - API Call Submission Form.</figcaption>
   </p>
 </figure>
