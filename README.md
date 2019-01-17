@@ -93,11 +93,31 @@ In our specific case, the Fab Lab has been deployed in a complex enterprise netw
     <li>The Pi-Gateway has no direct Internet access necessary to reach the Cloud Hub infrastructure.</li>
     <li><p align="justify">
         The Cloud Hub is tightly integrated with AWS managed services and uses <b>Route 53</b> for name resolution (DNS). Unfortunately,
-        this service is not visible from the VPN tunnel; thus, a lightweight DNS service must be deployed on the cloud side of the
+        this service is not visible from the VPN tunnel; thus, a lightweight DNS service (<b>Dnsmasq</b>) must be deployed on the cloud side of the
         infrastructure to resolve network names into IP addresses,</p></li>
     <li><p align="justify">
         HA-Proxy, that is used to load balance the incoming requests among the services deployed on the cloud infrastructure, cannot
-        work as a forward proxy; thus, it is necessary to the deploy on the cloud end also a lightweight proxy service in order to
-        forward to the internet the requests coming from the Pi-Gateway.</p></li>
+        work as a forward proxy; thus, it is necessary to the deploy on the cloud end also a lightweight proxy service   
+        (<b>Timyproxy</b>) in order to forward to the internet the requests coming from the Pi-Gateway.</p></li>
   </ul>
 </p>
+
+<p align="justify">
+Fig. 1 depicts the cloud architecture and services to allow outgoing requests from the Pi-Gateway to the internet.
+</p>
+
+<figure>
+  <p align="center">
+    <img src="/docs/images/cloud-arch.png" alt="CLOUD ARCHITECTURE"/>
+    <figcaption>Fig. 1 - Cloud Configuration to Support Internet Access from the Pi-Gateway.</figcaption>
+  </p>
+</figure>
+
+```
+127.0.0.1       localhost
+::1             localhost ip6-localhost ip6-loopback
+ff02::1         ip6-allnodes
+ff02::2         ip6-allrouters
+
+127.0.1.1       piwrapper
+```
