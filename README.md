@@ -309,7 +309,7 @@ This URL leads to the Pi-Gateway API documentation landing page depicted in Fig.
 
 <figure>
   <p align="center">
-    <img src="/docs/images/api-landing.png" alt="API DOCUMENTATION LANDING PAGE"/>
+    <img src="/docs/images/api-landing-page.png" alt="API DOCUMENTATION LANDING PAGE"/>
     <figcaption>Fig. 2 - The API Documentation Landing Page.</figcaption>
   </p>
 </figure>
