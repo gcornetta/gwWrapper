@@ -2,7 +2,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/gcornetta/gwWrapper/badge.svg)](https://snyk.io/test/github/gcornetta/gwWrapper)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-![NEWTON BANNER](/docs/images/newton.png)
+![NEWTON BANNER](/docs/images/banner.png)
 
 # Fab Lab Modules: Machine Wrapper
 <p align="justify">
