@@ -155,7 +155,7 @@ The Fab Lab APIs implement methods to get Fab Lab status and API quota, to delet
 </p>
 
 <table>
-  <caption>Table 2: Fab Lab APIs</caption>
+  <caption>Table 1: Fab Lab APIs</caption>
   <tr>
     <th>Resource</th>
     <th>GET</th>
