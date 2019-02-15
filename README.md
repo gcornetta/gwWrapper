@@ -4,7 +4,7 @@
 
 ![NEWTON BANNER](/docs/images/banner.png)
 
-# Fab Lab Modules: Fab Lab APIs Wrapper (Pi-Gateway)
+# Fab Lab Modules: Fab Lab Wrapper (Pi-Gateway) APIs 
 <p align="justify">
 This software is part of a larger suite of microservices designed to remotely manage digital fabrication equipment in a loosely coupled and distributed environment. More specifically, the software in this repo implements a wrapper for the Fab Lab APIs with basic security policies. Fab Lab machines are not directly exposed to the internet, but rather they are protected by a Gateway which is the entry point to Fab Lab fabrication resources. The Gateway is responsible for managing Fab Lab access, routing incoming fabrication requests to available machines and interacting with the Cloud Hub to control fabrication status. The Fab Lab APIs wrapper has be designed to work either as a standalone application or behind a more feature-rich and general-purpose gateway as, for example, <a href="https://www.express-gateway.io/">Express Gateway</a>. All the Gateway software infrastructure can be orchestrated by a CLI that at the moment has not been open-sourced; however, the CLI is not necessary to control the Fab Lab APIs wrapper.
 </p>
