@@ -11,7 +11,6 @@ const swaggerTools = require('swagger-tools')
 const YAML = require('yamljs')
 const swaggerDoc = YAML.load('swagger.yaml')
 const WebSocket = require('ws')
-var ws
 const cron = require('node-schedule')
 const request = require('request')
 const formidable = require('formidable')
@@ -19,6 +18,7 @@ const fs = require('fs')
 
 require('dotenv').config()
 
+let ws
 reconnect()
 
 function reconnect () {
